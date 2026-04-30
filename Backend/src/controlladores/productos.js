@@ -1,13 +1,13 @@
-const db = require('../db');
+const db = require('../confg/db_conexion');
 
-// ── Helpers ─────────────────────────────────────────────────────────────────
+// Helpers
 
 const ok  = (res, data, status = 200) => res.status(status).json(data);
 const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
-// ── GET /api/productos ───────────────────────────────────────────────────────
+// GET /api/productos 
 const listar = async (req, res) => {
   try {
     const { buscar = '', categoria = '', tipo = '', pagina = 1, limite = 20 } = req.query;
@@ -57,7 +57,7 @@ const listar = async (req, res) => {
   }
 };
 
-// ── GET /api/productos/:id ───────────────────────────────────────────────────
+//  GET /api/productos/:id 
 const obtener = async (req, res) => {
   try {
     const [[producto]] = await db.query(
@@ -99,7 +99,7 @@ const obtener = async (req, res) => {
   }
 };
 
-// ── POST /api/productos ──────────────────────────────────────────────────────
+//  POST /api/productos 
 const crear = async (req, res) => {
   const conn = await db.getConnection();
   try {
@@ -180,7 +180,7 @@ const crear = async (req, res) => {
   }
 };
 
-// ── PUT /api/productos/:id ───────────────────────────────────────────────────
+//  PUT /api/productos/:id 
 const actualizar = async (req, res) => {
   const conn = await db.getConnection();
   try {
@@ -256,7 +256,7 @@ const actualizar = async (req, res) => {
   }
 };
 
-// ── DELETE /api/productos/:id  (soft delete) ─────────────────────────────────
+//  DELETE /api/productos/:id
 const eliminar = async (req, res) => {
   try {
     const [[existe]] = await db.query(
@@ -274,7 +274,7 @@ const eliminar = async (req, res) => {
   }
 };
 
-// ── PATCH /api/productos/:id/stock  (ajuste manual de stock) ─────────────────
+//  PATCH /api/productos/:id/stock  (ajuste manual de stock)
 const ajustarStock = async (req, res) => {
   const conn = await db.getConnection();
   try {
@@ -321,7 +321,7 @@ const ajustarStock = async (req, res) => {
   }
 };
 
-// ── GET /api/productos/catalogos  (categorías + unidades para formularios) ───
+//  GET /api/productos/catalogos  (categorías + unidades para formularios)
 const catalogos = async (req, res) => {
   try {
     const [[categorias], [unidades], [proveedores]] = await Promise.all([

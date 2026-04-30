@@ -1,7 +1,7 @@
-// ── Config ───────────────────────────────────────────────────────────────────
+// Config
 const API = '/api/productos';
 
-// ── Estado global ────────────────────────────────────────────────────────────
+// Estado global
 let estado = {
   pagina: 1,
   limite: 20,
@@ -11,7 +11,7 @@ let estado = {
   editandoId: null,
 };
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+//  Helpers
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $$ = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
@@ -29,7 +29,7 @@ const tipoBadge = (tipo) =>
     ? `<span class="badge badge-azul">Fabricado</span>`
     : `<span class="badge badge-naranja">Comprado</span>`;
 
-// ── Fetch con token ──────────────────────────────────────────────────────────
+// Fetch con token 
 const apiFetch = async (url, opts = {}) => {
   const token = document.cookie.match(/(?:^|;\s*)token=([^;]+)/)?.[1] || '';
   const res = await fetch(url, {
@@ -44,7 +44,7 @@ const apiFetch = async (url, opts = {}) => {
   return res.json();
 };
 
-// ── Cargar catálogos (categorías, unidades, proveedores) ─────────────────────
+//  Cargar catálogos (categorías, unidades, proveedores) 
 const cargarCatalogos = async () => {
   const data = await apiFetch(`${API}/catalogos`);
   if (!data) return;
@@ -76,7 +76,7 @@ const cargarCatalogos = async () => {
   });
 };
 
-// ── Cargar tabla ─────────────────────────────────────────────────────────────
+//  Cargar tabla 
 const cargarProductos = async () => {
   const tbody = $('#tabla-body');
   tbody.innerHTML = `<tr><td colspan="8" class="cargando">Cargando...</td></tr>`;
@@ -129,7 +129,7 @@ const cargarProductos = async () => {
   renderPaginacion(data.paginacion);
 };
 
-// ── Paginación ────────────────────────────────────────────────────────────────
+// Paginación 
 const renderPaginacion = ({ pagina, paginas, total }) => {
   const el = $('#paginacion');
   el.innerHTML = '';
@@ -155,7 +155,7 @@ const renderPaginacion = ({ pagina, paginas, total }) => {
 
 window.cambiarPagina = (p) => { estado.pagina = p; cargarProductos(); };
 
-// ── Modal Crear / Editar ──────────────────────────────────────────────────────
+//  Modal Crear / Editar
 const abrirModal = (titulo = 'Nuevo producto') => {
   $('#modal-titulo').textContent = titulo;
   $('#modal-producto').classList.add('visible');
@@ -271,7 +271,7 @@ window.abrirEditar = async (id) => {
   $('#row-stock').style.display = 'none';
 };
 
-// ── Modal Ver detalle ─────────────────────────────────────────────────────────
+// Modal Ver detalle 
 window.verProducto = async (id) => {
   const data = await apiFetch(`${API}/${id}`);
   if (!data) return;
@@ -311,7 +311,7 @@ window.verProducto = async (id) => {
 
 window.cerrarDetalle = () => $('#modal-detalle').classList.remove('visible');
 
-// ── Modal Ajuste de Stock ─────────────────────────────────────────────────────
+// Modal Ajuste de Stock
 window.abrirStock = (id, stockActual, nombre) => {
   $('#stock-nombre').textContent  = nombre;
   $('#stock-actual').textContent  = stockActual;
@@ -338,7 +338,7 @@ $('#form-stock-ajuste').addEventListener('submit', async (e) => {
   cargarProductos();
 });
 
-// ── Eliminar ─────────────────────────────────────────────────────────────────
+// Eliminar
 window.eliminarProducto = async (id, nombre) => {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   const data = await apiFetch(`${API}/${id}`, { method: 'DELETE' });
@@ -347,7 +347,7 @@ window.eliminarProducto = async (id, nombre) => {
   cargarProductos();
 };
 
-// ── Toast ─────────────────────────────────────────────────────────────────────
+//  Toast
 const mostrarToast = (msg, tipo = 'ok') => {
   const t = document.createElement('div');
   t.className = `toast toast-${tipo}`;
@@ -357,7 +357,7 @@ const mostrarToast = (msg, tipo = 'ok') => {
   setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 3000);
 };
 
-// ── Filtros ───────────────────────────────────────────────────────────────────
+//  Filtros 
 let timer;
 $('#buscar-input').addEventListener('input', (e) => {
   clearTimeout(timer);
@@ -392,7 +392,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { cerrarModal(); cerrarDetalle(); cerrarStock(); }
 });
 
-// ── Init ──────────────────────────────────────────────────────────────────────
+
 (async () => {
   await cargarCatalogos();
   await cargarProductos();
