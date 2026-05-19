@@ -9,6 +9,10 @@
       "destination": "/pages/compra.html"
     },
     {
+      "source": "/historial-compras",
+      "destination": "/pages/historial-compra.html"
+    },
+    {
       "source": "/:page.html",
       "destination": "/pages/:page.html"
     },
