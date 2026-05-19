@@ -4,9 +4,130 @@
       "source": "/api/:path*",
       "destination": "https://joyful-spontaneity-production-409d.up.railway.app/api/:path*"
     },
+
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "source": "/login",
+      "destination": "/pages/login.html"
+    },
+
+    {
+      "source": "/inicio",
+      "destination": "/pages/panel.html"
+    },
+
+    {
+      "source": "/productos",
+      "destination": "/pages/productos.html"
+    },
+
+    {
+      "source": "/categorias",
+      "destination": "/pages/categorias.html"
+    },
+
+    {
+      "source": "/unidades",
+      "destination": "/pages/unidades.html"
+    },
+
+    {
+      "source": "/ordenes",
+      "destination": "/pages/ordenes.html"
+    },
+
+    {
+      "source": "/materias",
+      "destination": "/pages/materias.html"
+    },
+
+    {
+      "source": "/registrar-gasto",
+      "destination": "/pages/registrar-gasto.html"
+    },
+
+    {
+      "source": "/historial-gastos",
+      "destination": "/pages/historial-gastos.html"
+    },
+
+    {
+      "source": "/perfil",
+      "destination": "/pages/perfil.html"
+    },
+
+    {
+      "source": "/usuarios",
+      "destination": "/pages/usuarios.html"
+    },
+
+    {
+      "source": "/nueva-venta",
+      "destination": "/pages/nueva-venta.html"
+    },
+
+    {
+      "source": "/historial-ventas",
+      "destination": "/pages/historial-ventas.html"
+    },
+
+    {
+      "source": "/mayoreo",
+      "destination": "/pages/mayoreo.html"
+    },
+
+    {
+      "source": "/devoluciones",
+      "destination": "/pages/devoluciones.html"
+    },
+
+    {
+      "source": "/proveedores",
+      "destination": "/pages/proveedores.html"
+    },
+
+    {
+      "source": "/productos-proveedor",
+      "destination": "/pages/productos-proveedor.html"
+    },
+
+    {
+      "source": "/registrar-compra",
+      "destination": "/pages/compra.html"
+    },
+
+    {
+      "source": "/historial-compras",
+      "destination": "/pages/historial-compra.html"
+    },
+
+    {
+      "source": "/venta-periodo",
+      "destination": "/pages/venta-periodo.html"
+    },
+
+    {
+      "source": "/ganancias",
+      "destination": "/pages/ganancias.html"
+    },
+
+    {
+      "source": "/mas-vendido",
+      "destination": "/pages/mas-vendido.html"
+    },
+
+    {
+      "source": "/gastos-categoria",
+      "destination": "/pages/gastos-categoria.html"
+    },
+
+    {
+      "source": "/inventario",
+      "destination": "/pages/inventario.html"
+    },
+
+    {
+      "source": "/movimientos",
+      "destination": "/pages/movimientos.html"
     }
   ]
 }
