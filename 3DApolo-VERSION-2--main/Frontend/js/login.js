@@ -37,7 +37,7 @@ async function login() {
     if (respuesta.ok) {
       localStorage.setItem('token', data.token);
       localStorage.setItem('usuario', JSON.stringify(data.usuario));
-      window.location.href = '/panel.html';
+      window.location.href = '/pages/panel.html';
     } else {
       errorEl.textContent = data.mensaje || 'Error al iniciar sesión';
     }

@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/panel.html", "destination": "/pages/panel.html" },
+    { "source": "/login.html", "destination": "/pages/login.html" }
+  ]
+}
