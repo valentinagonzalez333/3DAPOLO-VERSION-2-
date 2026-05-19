@@ -38,8 +38,6 @@ async function login() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('usuario', JSON.stringify(data.usuario));
       window.location.href = '/panel.html';
-      window.location.href = '/dashboard.html';
-      window.location.href = '/index.html';
     } else {
       errorEl.textContent = data.mensaje || 'Error al iniciar sesión';
     }
