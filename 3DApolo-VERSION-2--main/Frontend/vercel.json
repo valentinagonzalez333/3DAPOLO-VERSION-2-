@@ -1,6 +1,8 @@
 {
   "rewrites": [
-    { "source": "/panel.html", "destination": "/pages/panel.html" },
-    { "source": "/login.html", "destination": "/pages/login.html" }
+    {
+      "source": "/api/:path*",
+      "destination": "https://joyful-spontaneity-production-409d.up.railway.app/api/:path*"
+    }
   ]
 }
