@@ -44,10 +44,7 @@ async function login() {
 
   } catch (error) {
     console.error("Error en login:", error);
-    return res.status(500).json({
-      mensaje: "Error interno en login",
-      error: error.message
-    });
+    errorEl.textContent = 'No se pudo conectar con el servidor';
   } finally {
     btnLogin.disabled = false;
     btnLogin.textContent = 'Entrar';

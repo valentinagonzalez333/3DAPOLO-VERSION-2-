@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
-const jwt    = require('jsonwebtoken');
-const db     = require('../confg/db_conexion');
+const jwt = require('jsonwebtoken');
+const db = require('../confg/db_conexion');
 
 const login = async (req, res) => {
   const { usuario, contrasena } = req.body;
@@ -32,8 +32,8 @@ const login = async (req, res) => {
     const token = jwt.sign(
       {
         id_usuario: usuarioDB.id_usuario,
-        usuario:    usuarioDB.usuario,
-        rol:        usuarioDB.rol,
+        usuario: usuarioDB.usuario,
+        rol: usuarioDB.rol,
       },
       process.env.JWT_SECRET,
       { expiresIn: '8h' }
@@ -41,24 +41,26 @@ const login = async (req, res) => {
 
     res.cookie('token', token, {
       httpOnly: true,
-      secure:   process.env.NODE_ENV === 'production',
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge:   8 * 60 * 60 * 1000,
+      maxAge: 8 * 60 * 60 * 1000,
     });
 
     res.json({
       token,
       usuario: {
         id_usuario: usuarioDB.id_usuario,
-        nombre:     usuarioDB.nombre,
-        usuario:    usuarioDB.usuario,
-        rol:        usuarioDB.rol,
+        nombre: usuarioDB.nombre,
+        usuario: usuarioDB.usuario,
+        rol: usuarioDB.rol,
       },
     });
 
   } catch (error) {
-    console.error('Error en login:', error.message);
-    res.status(500).json({ mensaje: 'Error interno del servidor' });
+    res.status(500).json({
+      mensaje: "Error interno",
+      error: error.message
+    });
   }
 };
 
