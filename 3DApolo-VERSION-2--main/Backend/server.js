@@ -1,6 +1,6 @@
 
   
-
+app.use(express.json());
 require('dotenv').config();
 const app  = require('./src/app');
 
