@@ -1,0 +1,1 @@
+router.post('/logout', ctrl.logout);

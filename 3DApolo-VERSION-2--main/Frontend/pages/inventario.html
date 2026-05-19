@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventario actual</title>
+  <link rel="stylesheet" href="../css/panel.css">
+  <link rel="stylesheet" href="../css/productos.css">
+  <link rel="stylesheet" href="../css/informes.css">
+  <script src="../js/sg.js"></script>
+  <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="layout">
+
+    <aside class="menu" id="menu">
+      <div class="menu-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Bienvenido</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/inicio" class="menu-simple"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/productos"><i data-lucide="package"></i><span>Productos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/productos"><i data-lucide="box"></i>Productos</a></li>
+              <li><a href="/categorias"><i data-lucide="tag"></i>Categorías</a></li>
+              <li><a href="/unidades"><i data-lucide="ruler"></i>Unidades</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/proveedores"><i data-lucide="truck"></i><span>Proveedores</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/proveedores"><i data-lucide="building-2"></i>Proveedores</a></li>
+              <li><a href="/productos-proveedor"><i data-lucide="package-search"></i>Productos por proveedor</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/ordenes"><i data-lucide="factory"></i><span>Producción</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/ordenes"><i data-lucide="clipboard-list"></i>Órdenes de producción</a></li>
+              <li><a href="/materias"><i data-lucide="layers"></i>Materias primas</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/registrar-compra"><i data-lucide="shopping-cart"></i><span>Compras</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-compra"><i data-lucide="plus-circle"></i>Registrar compra</a></li>
+              <li><a href="/historial-compras"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/nueva-venta"><i data-lucide="trending-up"></i><span>Ventas</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/nueva-venta"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
+              <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
+              <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
+              <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/registrar-gasto"><i data-lucide="wallet"></i><span>Gastos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-gasto"><i data-lucide="plus-circle"></i>Registrar gasto</a></li>
+              <li><a href="/historial-gastos"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre activo-padre">
+            <a class="menu-padre" href="/venta-periodo"><i data-lucide="bar-chart-2"></i><span>Informes</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu submenu-abierto">
+              <li><a href="/venta-periodo"><i data-lucide="calendar-range"></i>Venta por periodo</a></li>
+              <li><a href="/ganancias"><i data-lucide="trending-up"></i>Ganancias por productos</a></li>
+              <li><a href="/mas-vendido"><i data-lucide="award"></i>Producto más vendido</a></li>
+              <li><a href="/gastos-categoria"><i data-lucide="pie-chart"></i>Gastos por categoría</a></li>
+              <li><a href="/inventario" class="active"><i data-lucide="archive"></i>Inventario actual</a></li>
+              <li><a href="/movimientos"><i data-lucide="activity"></i>Movimientos</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/perfil"><i data-lucide="settings"></i><span>Configuración</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/perfil"><i data-lucide="user-circle"></i>Mi perfil</a></li>
+              <li><a href="/usuarios"><i data-lucide="users"></i>Usuarios</a></li>
+              <li><a href="#" onclick="cerrarSesion()"><i data-lucide="log-out"></i>Cerrar sesión</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+      <div class="top-bar">
+        <button class="btn-menu" id="btn">☰</button>
+        <div class="top-bar-titulo">
+          <h1>Inventario actual</h1>
+          <span id="total-count" class="muted">—</span>
+        </div>
+        <div class="top-bar-acciones">
+          <div class="container">
+            <div class="toggle">
+              <input type="checkbox" id="btn_modo">
+              <span class="button"></span>
+              <span class="label">☼</span>
+            </div>
+          </div>
+          <button id="btn-exportar" class="btn-secundario">
+            <i data-lucide="download"></i> Exportar CSV
+          </button>
+        </div>
+      </div>
+
+
+      <div class="informe-filtros">
+        <div class="filtro-group">
+          <label>Categoría</label>
+          <select id="fil-categoria">
+            <option value="">Todas</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Tipo</label>
+          <select id="fil-tipo">
+            <option value="">Todos</option>
+            <option value="fabricado">Fabricado</option>
+            <option value="comprado">Comprado</option>
+          </select>
+        </div>
+        <div class="filtro-group">
+          <label>Estado stock</label>
+          <select id="fil-estado">
+            <option value="">Todos</option>
+            <option value="ok">OK</option>
+            <option value="bajo">Stock bajo</option>
+            <option value="agotado">Sin stock</option>
+          </select>
+        </div>
+        <div class="buscador-wrap" style="flex:1;min-width:200px">
+          <i data-lucide="search"></i>
+          <input type="text" id="buscar-input" placeholder="Buscar producto...">
+        </div>
+        <button id="btn-aplicar" class="btn-primario">
+          <i data-lucide="filter"></i> Filtrar
+        </button>
+      </div>
+
+
+      <div class="cards-informe" style="grid-template-columns:repeat(5,1fr)">
+        <div class="card-inf">
+          <i data-lucide="package"></i>
+          <p>Total productos</p>
+          <h3 id="ci-total">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="dollar-sign"></i>
+          <p>Valor inventario</p>
+          <h3 id="ci-valor">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="check-circle"></i>
+          <p>En stock</p>
+          <h3 id="ci-ok" style="color:#22c55e">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="alert-triangle"></i>
+          <p>Stock bajo</p>
+          <h3 id="ci-bajo" style="color:#eab308">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="x-circle"></i>
+          <p>Sin stock</p>
+          <h3 id="ci-agotado" style="color:#ef4444">—</h3>
+        </div>
+      </div>
+
+
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;margin-bottom:20px">
+        <div class="grafico-wrap">
+          <div class="grafico-header">
+            <span class="seccion-titulo">Estado del stock</span>
+          </div>
+          <canvas id="grafico-estado" height="200"></canvas>
+        </div>
+        <div class="grafico-wrap">
+          <div class="grafico-header">
+            <span class="seccion-titulo">Valor por categoría</span>
+          </div>
+          <canvas id="grafico-categorias" height="200"></canvas>
+        </div>
+      </div>
+
+
+      <div class="tabla-wrap">
+        <table class="tabla-productos">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Categoría</th>
+              <th>Tipo</th>
+              <th>Stock actual</th>
+              <th>Stock mínimo</th>
+              <th>Estado</th>
+              <th>Costo prom.</th>
+              <th>Precio venta</th>
+              <th>Valor total</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body">
+            <tr>
+              <td colspan="9" class="cargando">Cargando...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div id="paginacion" class="paginacion"></div>
+
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    document.getElementById('btn').addEventListener('click', () => {
+      document.getElementById('menu').classList.toggle('activo');
+    });
+    document.getElementById('btn_modo').addEventListener('change', (e) => {
+      document.body.classList.toggle('dark-mode', e.target.checked);
+    });
+    function cerrarSesion() {
+      if (!confirm('¿Cerrar sesión?')) return;
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      fetch('/api/auth/logout', { method: 'POST' })
+        .finally(() => window.location.replace('/login'));
+    }
+  </script>
+  <script src="/js/inventario.js"></script>
+</body>
+
+</html>

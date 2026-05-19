@@ -1,0 +1,265 @@
+
+.compra-grid {
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .compra-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compra-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+
+.seccion-titulo {
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--naranja);
+  margin-bottom: 14px;
+}
+
+
+.totales-box {
+  background: var(--card);
+}
+
+.total-row-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
+  color: var(--texto);
+}
+
+.total-row-item.total-final {
+  font-weight: 700;
+  font-size: 16px;
+  border-bottom: none;
+  color: var(--naranja);
+  padding-top: 12px;
+}
+
+body.dark-mode .total-row-item {
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+
+.buscar-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  padding: 8px 12px;
+}
+
+.buscar-wrap i {
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+  flex-shrink: 0;
+}
+
+.buscar-wrap input {
+  border: none;
+  background: transparent;
+  outline: none;
+  width: 100%;
+  font-size: 14px;
+  color: var(--texto);
+}
+
+.buscar-wrap input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+body.dark-mode .buscar-wrap {
+  border-color: rgba(255,255,255,0.08);
+}
+
+
+.lista-items-drop {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 100;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+body.dark-mode .lista-items-drop {
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.item-row:last-child {
+  border-bottom: none;
+}
+
+.item-row:hover {
+  background: rgba(255, 107, 0, 0.07);
+}
+
+body.dark-mode .item-row:hover {
+  background: rgba(255, 107, 0, 0.12);
+}
+
+.item-nombre {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--texto);
+}
+
+.item-tipo {
+  font-size: 11px;
+}
+
+.item-precio {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--naranja);
+}
+
+.item-vacio {
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: #aaa;
+}
+
+
+.inp-cant,
+.inp-precio {
+  width: 90px;
+  padding: 6px 8px;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--card);
+  color: var(--texto);
+  outline: none;
+  transition: border 0.2s;
+}
+
+.inp-cant:focus,
+.inp-precio:focus {
+  border-color: var(--naranja);
+}
+
+body.dark-mode .inp-cant,
+body.dark-mode .inp-precio {
+  border-color: rgba(255,255,255,0.1);
+  background: #2a2a2a;
+}
+
+
+.cards-resumen {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 900px) {
+  .cards-resumen {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.card-res {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.card-res i {
+  width: 20px;
+  height: 20px;
+  color: var(--naranja);
+  opacity: 0.8;
+}
+
+.card-res p {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.card-res h3 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--texto);
+}
+
+body.dark-mode .card-res {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+
+
+.fil-select {
+  padding: 8px 12px;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--texto);
+  font-size: 14px;
+  outline: none;
+  cursor: pointer;
+}
+
+.fil-select:focus {
+  border-color: var(--naranja);
+}
+
+body.dark-mode .fil-select {
+  border-color: rgba(255,255,255,0.08);
+  background: #1a1a1a;
+}
+
+
+.badge-rojo {
+  background: rgba(220, 53, 69, 0.12);
+  color: #dc3545;
+}
+
+.btn-icono.rojo {
+  color: #dc3545;
+}

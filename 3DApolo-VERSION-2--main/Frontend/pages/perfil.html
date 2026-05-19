@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Perfil</title>
+  <link rel="stylesheet" href="/css/categorias.css">
+  <link rel="stylesheet" href="/css/modulos.css">
+ <script src="../js/sg.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script></head>
+<body>
+<div class="layout">
+        <aside class="menu" id="menu">
+      <div class="menu-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Bienvenido</span>
+      </div>
+      <nav><ul>
+        <li><a href="/inicio" class="menu-simple"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a></li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/productos"><i data-lucide="package"></i><span>Productos</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/productos"><i data-lucide="box"></i>Productos</a></li>
+            <li><a href="/categorias"><i data-lucide="tag"></i>Categorías</a></li>
+            <li><a href="/unidades"><i data-lucide="ruler"></i>Unidades</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/proveedores"><i data-lucide="truck"></i><span>Proveedores</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/proveedores"><i data-lucide="building-2"></i>Proveedores</a></li>
+            <li><a href="/productos-proveedor"><i data-lucide="package-search"></i>Productos por proveedor</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/ordenes"><i data-lucide="factory"></i><span>Producción</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/ordenes"><i data-lucide="clipboard-list"></i>Órdenes de producción</a></li>
+            <li><a href="/materias"><i data-lucide="layers"></i>Materias primas</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/registrar-compra"><i data-lucide="shopping-cart"></i><span>Compras</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/registrar-compra"><i data-lucide="plus-circle"></i>Registrar compra</a></li>
+            <li><a href="/historial-compras"><i data-lucide="history"></i>Historial</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/nueva-venta"><i data-lucide="trending-up"></i><span>Ventas</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/nueva-venta"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
+            <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
+            <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
+            <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/registrar-gasto"><i data-lucide="wallet"></i><span>Gastos</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/registrar-gasto"><i data-lucide="plus-circle"></i>Registrar gasto</a></li>
+            <li><a href="/historial-gastos"><i data-lucide="history"></i>Historial</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/venta-periodo"><i data-lucide="bar-chart-2"></i><span>Informes</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/venta-periodo"><i data-lucide="calendar-range"></i>Venta por periodo</a></li>
+            <li><a href="/ganancias"><i data-lucide="trending-up"></i>Ganancias por productos</a></li>
+            <li><a href="/mas-vendido"><i data-lucide="award"></i>Producto más vendido</a></li>
+            <li><a href="/gastos-categoria"><i data-lucide="pie-chart"></i>Gastos por categoría</a></li>
+            <li><a href="/inventario"><i data-lucide="archive"></i>Inventario actual</a></li>
+            <li><a href="/movimientos"><i data-lucide="activity"></i>Movimientos</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre activo-padre">
+          <a class="menu-padre" href="/perfil"><i data-lucide="settings"></i><span>Configuración</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu submenu-abierto">
+            <li><a href="/perfil" class="active"><i data-lucide="user-circle"></i>Mi perfil</a></li>
+            <li><a href="/usuarios"><i data-lucide="users"></i>Usuarios</a></li>
+            <li><a href="#" onclick="cerrarSesion()"><i data-lucide="log-out"></i>Cerrar sesión</a></li>
+          </ul>
+        </li>
+      </ul></nav>
+    </aside>
+
+  <main class="contenido">
+    <button class="btn-menu" id="btn">☰</button>
+    <div class="container">
+      <div class="toggle">
+        <input type="checkbox" id="btn_modo">
+        <span class="button"></span>
+        <span class="label">☼</span>
+      </div>
+    </div>
+
+    <div class="sec-header">
+      <h2><i data-lucide="user-circle"></i> Mi Perfil</h2>
+    </div>
+
+    <div class="perfil-card">
+      <div class="perfil-avatar"><i data-lucide="user"></i></div>
+      <p class="perfil-nombre" id="p-nombre">—</p>
+      <p class="perfil-rol" id="p-rol">—</p>
+
+      <form id="form-perfil" onsubmit="guardarPerfil(event)">
+        <div class="fgrid">
+          <div class="fg">
+            <label>Nombre completo</label>
+            <input type="text" id="f-nombre" maxlength="100">
+          </div>
+          <div class="fg">
+            <label>Usuario</label>
+            <input type="text" id="f-usuario" maxlength="50" readonly style="opacity:.6;cursor:not-allowed">
+          </div>
+          <div class="fg">
+            <label>Correo</label>
+            <input type="email" id="f-correo">
+          </div>
+          <div class="fg">
+            <label>Teléfono</label>
+            <input type="text" id="f-tel" maxlength="20">
+          </div>
+        </div>
+
+        <hr class="sep">
+        <p style="font-size:13px;color:#aaa;margin:0 0 12px">Dejar en blanco para no cambiar contraseña</p>
+        <div class="fgrid">
+          <div class="fg">
+            <label>Contraseña actual</label>
+            <input type="password" id="f-pass-act">
+          </div>
+          <div class="fg">
+            <label>Nueva contraseña</label>
+            <input type="password" id="f-pass-new">
+          </div>
+        </div>
+
+        <div class="modal-foot" style="border-top:none;padding-top:20px">
+          <button type="submit" class="btn-naranja">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
+<div id="toast"></div>
+
+
+
+
+<script src="/js/api.js"></script>
+<script src="/js/init.js"></script>
+<script src="/js/perfil.js"></script>
+</body>
+</html>

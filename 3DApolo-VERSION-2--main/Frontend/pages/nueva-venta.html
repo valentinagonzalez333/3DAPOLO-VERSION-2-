@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Nueva Venta</title>
+  <link rel="stylesheet" href="/css/categorias.css">
+  <link rel="stylesheet" href="/css/modulos.css">
+  <script src="../js/sg.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script></head>
+<body>
+<div class="layout">
+  <aside class="menu" id="menu">
+      <div class="menu-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Bienvenido</span>
+      </div>
+      <nav><ul>
+        <li><a href="/inicio" class="menu-simple"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a></li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/productos"><i data-lucide="package"></i><span>Productos</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/productos"><i data-lucide="box"></i>Productos</a></li>
+            <li><a href="/categorias"><i data-lucide="tag"></i>Categorías</a></li>
+            <li><a href="/unidades"><i data-lucide="ruler"></i>Unidades</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/proveedores"><i data-lucide="truck"></i><span>Proveedores</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/proveedores"><i data-lucide="building-2"></i>Proveedores</a></li>
+            <li><a href="/productos-proveedor"><i data-lucide="package-search"></i>Productos por proveedor</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/ordenes"><i data-lucide="factory"></i><span>Producción</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/ordenes"><i data-lucide="clipboard-list"></i>Órdenes de producción</a></li>
+            <li><a href="/materias"><i data-lucide="layers"></i>Materias primas</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/registrar-compra"><i data-lucide="shopping-cart"></i><span>Compras</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/registrar-compra"><i data-lucide="plus-circle"></i>Registrar compra</a></li>
+            <li><a href="/historial-compras"><i data-lucide="history"></i>Historial</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre activo-padre">
+          <a class="menu-padre" href="/nueva-venta"><i data-lucide="trending-up"></i><span>Ventas</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu submenu-abierto">
+            <li><a href="/nueva-venta" class="active"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
+            <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
+            <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
+            <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/registrar-gasto"><i data-lucide="wallet"></i><span>Gastos</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/registrar-gasto"><i data-lucide="plus-circle"></i>Registrar gasto</a></li>
+            <li><a href="/historial-gastos"><i data-lucide="history"></i>Historial</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/venta-periodo"><i data-lucide="bar-chart-2"></i><span>Informes</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/venta-periodo"><i data-lucide="calendar-range"></i>Venta por periodo</a></li>
+            <li><a href="/ganancias"><i data-lucide="trending-up"></i>Ganancias por productos</a></li>
+            <li><a href="/mas-vendido"><i data-lucide="award"></i>Producto más vendido</a></li>
+            <li><a href="/gastos-categoria"><i data-lucide="pie-chart"></i>Gastos por categoría</a></li>
+            <li><a href="/inventario"><i data-lucide="archive"></i>Inventario actual</a></li>
+            <li><a href="/movimientos"><i data-lucide="activity"></i>Movimientos</a></li>
+          </ul>
+        </li>
+        <li class="menu-item-padre">
+          <a class="menu-padre" href="/perfil"><i data-lucide="settings"></i><span>Configuración</span>
+          <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></a>
+          <ul class="submenu">
+            <li><a href="/perfil"><i data-lucide="user-circle"></i>Mi perfil</a></li>
+            <li><a href="/usuarios"><i data-lucide="users"></i>Usuarios</a></li>
+            <li><a href="#" onclick="cerrarSesion()"><i data-lucide="log-out"></i>Cerrar sesión</a></li>
+          </ul>
+        </li>
+      </ul></nav>
+    </aside>
+  <main class="contenido">
+    <button class="btn-menu" id="btn">☰</button>
+    <div class="container">
+      <div class="toggle"><input type="checkbox" id="btn_modo"><span class="button"></span><span class="label">☼</span></div>
+    </div>
+
+    <div class="sec-header">
+      <h2><i data-lucide="plus-circle"></i> Nueva Venta</h2>
+    </div>
+
+    <div class="pos-layout">
+      <!-- PRODUCTOS -->
+      <div class="pos-productos">
+        <div class="filtros" style="margin-bottom:12px">
+          <input type="text" id="buscar-prod" placeholder="Buscar producto...">
+          <select id="filtro-tipo">
+            <option value="">Todos los tipos</option>
+            <option value="fabricado">Fabricado</option>
+            <option value="comprado">Comprado</option>
+          </select>
+        </div>
+        <div class="pos-grid" id="pos-grid">
+          <p style="color:#aaa;font-size:13px">Cargando productos...</p>
+        </div>
+      </div>
+
+      <!-- CARRITO -->
+      <div class="carrito">
+        <h3><i data-lucide="shopping-cart"></i> Carrito</h3>
+        <div class="carrito-items" id="carrito-items">
+          <p class="carrito-vacio">Selecciona productos</p>
+        </div>
+        <div class="carrito-totales">
+          <div class="ct-row"><span>Subtotal</span><span id="ct-sub">$0</span></div>
+          <div class="ct-row"><span>Descuento</span><span id="ct-desc">$0</span></div>
+          <div class="ct-row"><span>IVA</span><span id="ct-iva">$0</span></div>
+          <div class="ct-row ct-total"><span>TOTAL</span><span id="ct-total">$0</span></div>
+        </div>
+        <div class="carrito-form">
+          <select id="f-metodo">
+            <option value="">💳 Método de pago</option>
+            <option value="efectivo">Efectivo</option>
+            <option value="tarjeta">Tarjeta</option>
+            <option value="transferencia">Transferencia</option>
+            <option value="otro">Otro</option>
+          </select>
+          <select id="f-tipo-venta">
+            <option value="menudeo">Menudeo</option>
+            <option value="mayoreo">Mayoreo</option>
+          </select>
+          <select id="f-tipo-entrega">
+            <option value="tienda">Entrega en tienda</option>
+            <option value="domicilio">Domicilio</option>
+          </select>
+          <select id="f-cliente"><option value="">Sin cliente (menudeo)</option></select>
+          <textarea id="f-notas" rows="2" placeholder="Notas opcionales..."></textarea>
+          <button class="btn-naranja" style="width:100%;justify-content:center" onclick="registrarVenta()">
+            <i data-lucide="check"></i> Confirmar venta
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL CANTIDAD / DESCUENTO -->
+<div class="modal-bg" id="modal-cant" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="modal-box sm">
+    <div class="modal-head">
+      <h3 id="mc-titulo">Agregar al carrito</h3>
+      <button class="modal-close" onclick="document.getElementById('modal-cant').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fgrid">
+        <div class="fg"><label>Cantidad</label><input type="number" id="mc-cant" min="1" value="1"></div>
+        <div class="fg"><label>Descuento %</label><input type="number" id="mc-desc" min="0" max="100" step="0.01" value="0"></div>
+        <div class="fg span2"><label>Precio unitario ($)</label><input type="number" id="mc-precio" min="0" step="0.01"></div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn-cancel" onclick="document.getElementById('modal-cant').classList.remove('open')">Cancelar</button>
+        <button class="btn-naranja" onclick="agregarDesdeModal()"><i data-lucide="plus"></i> Agregar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+
+
+<script src="/js/api.js"></script>
+<script src="/js/init.js"></script>
+<script src="/js/nueva-venta.js"></script>
+</body>
+</html>

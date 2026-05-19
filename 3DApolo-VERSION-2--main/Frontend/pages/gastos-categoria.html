@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gastos por categoría</title>
+  <link rel="stylesheet" href="../css/panel.css">
+  <link rel="stylesheet" href="../css/productos.css">
+  <link rel="stylesheet" href="../css/informes.css">
+  <script src="../js/sg.js"></script>
+  <script src="https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+  <div class="layout">
+
+    <aside class="menu" id="menu">
+      <div class="menu-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Bienvenido</span>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="/inicio" class="menu-simple"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/productos"><i data-lucide="package"></i><span>Productos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/productos"><i data-lucide="box"></i>Productos</a></li>
+              <li><a href="/categorias"><i data-lucide="tag"></i>Categorías</a></li>
+              <li><a href="/unidades"><i data-lucide="ruler"></i>Unidades</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/proveedores"><i data-lucide="truck"></i><span>Proveedores</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/proveedores"><i data-lucide="building-2"></i>Proveedores</a></li>
+              <li><a href="/productos-proveedor"><i data-lucide="package-search"></i>Productos por proveedor</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/ordenes"><i data-lucide="factory"></i><span>Producción</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/ordenes"><i data-lucide="clipboard-list"></i>Órdenes de producción</a></li>
+              <li><a href="/materias"><i data-lucide="layers"></i>Materias primas</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/registrar-compra"><i data-lucide="shopping-cart"></i><span>Compras</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-compra"><i data-lucide="plus-circle"></i>Registrar compra</a></li>
+              <li><a href="/historial-compras"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/nueva-venta"><i data-lucide="trending-up"></i><span>Ventas</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/nueva-venta"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
+              <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
+              <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
+              <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/registrar-gasto"><i data-lucide="wallet"></i><span>Gastos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-gasto"><i data-lucide="plus-circle"></i>Registrar gasto</a></li>
+              <li><a href="/historial-gastos"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre activo-padre">
+            <a class="menu-padre" href="/venta-periodo"><i data-lucide="bar-chart-2"></i><span>Informes</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu submenu-abierto">
+              <li><a href="/venta-periodo"><i data-lucide="calendar-range"></i>Venta por periodo</a></li>
+              <li><a href="/ganancias"><i data-lucide="trending-up"></i>Ganancias por productos</a></li>
+              <li><a href="/mas-vendido"><i data-lucide="award"></i>Producto más vendido</a></li>
+              <li><a href="/gastos-categoria" class="active"><i data-lucide="pie-chart"></i>Gastos por categoría</a>
+            
+              <li><a href="/inventario"><i data-lucide="archive"></i>Inventario actual</a></li>
+                <li><a href="/movimientos"><i data-lucide="activity"></i>Movimientos</a></li>
+            </ul>
+          </li>
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="/perfil"><i data-lucide="settings"></i><span>Configuración</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none">
+                <path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+              </svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/perfil"><i data-lucide="user-circle"></i>Mi perfil</a></li>
+              <li><a href="/usuarios"><i data-lucide="users"></i>Usuarios</a></li>
+              <li><a href="#" onclick="cerrarSesion()"><i data-lucide="log-out"></i>Cerrar sesión</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+      <div class="top-bar">
+        <button class="btn-menu" id="btn">☰</button>
+        <div class="top-bar-titulo">
+          <h1>Gastos por categoría</h1>
+        </div>
+        <div class="top-bar-acciones">
+          <div class="container">
+            <div class="toggle">
+              <input type="checkbox" id="btn_modo">
+              <span class="button"></span>
+              <span class="label">☼</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="informe-filtros">
+        <div class="filtro-group">
+          <label>Desde</label>
+          <input type="date" id="fil-desde">
+        </div>
+        <div class="filtro-group">
+          <label>Hasta</label>
+          <input type="date" id="fil-hasta">
+        </div>
+        <div class="filtro-group">
+          <label>Frecuencia</label>
+          <select id="fil-frecuencia">
+            <option value="">Todas</option>
+            <option value="unica">Única</option>
+            <option value="diaria">Diaria</option>
+            <option value="semanal">Semanal</option>
+            <option value="mensual">Mensual</option>
+            <option value="anual">Anual</option>
+          </select>
+        </div>
+        <button id="btn-aplicar" class="btn-primario">
+          <i data-lucide="filter"></i> Aplicar
+        </button>
+      </div>
+
+      <div class="cards-informe" style="grid-template-columns:repeat(4,1fr)">
+        <div class="card-inf">
+          <i data-lucide="wallet"></i>
+          <p>Total gastos</p>
+          <h3 id="ci-total">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="layers"></i>
+          <p>Categorías activas</p>
+          <h3 id="ci-categorias">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="receipt"></i>
+          <p>Nro. de registros</p>
+          <h3 id="ci-registros">—</h3>
+        </div>
+        <div class="card-inf">
+          <i data-lucide="trending-up"></i>
+          <p>Mayor gasto</p>
+          <h3 id="ci-mayor">—</h3>
+        </div>
+      </div>
+
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div class="grafico-wrap">
+          <div class="grafico-header">
+            <span class="seccion-titulo">Distribución por categoría</span>
+          </div>
+          <canvas id="grafico-dona" height="200"></canvas>
+        </div>
+        <div class="grafico-wrap">
+          <div class="grafico-header">
+            <span class="seccion-titulo">Monto por categoría</span>
+          </div>
+          <canvas id="grafico-barras" height="200"></canvas>
+        </div>
+      </div>
+
+
+      <div class="tabla-wrap">
+        <table class="tabla-productos">
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Registros</th>
+              <th>Total gastado</th>
+              <th>% del total</th>
+              <th>Promedio por registro</th>
+              <th>Mayor gasto</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-body">
+            <tr>
+              <td colspan="6" class="cargando">Aplica los filtros para ver el reporte</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    lucide.createIcons();
+    document.getElementById('btn').addEventListener('click', () =>
+      document.getElementById('menu').classList.toggle('activo'));
+    document.getElementById('btn_modo').addEventListener('change', function () {
+      document.body.classList.toggle('dark-mode', this.checked);
+    });
+   
+    function cerrarSesion() {
+      if (!confirm('¿Cerrar sesión?')) return;
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      fetch('/api/auth/logout', { method: 'POST' })
+        .finally(() => window.location.replace('/login'));
+    }
+  </script>
+  <script src="../js/gasto-categoria.js"></script>
+</body>
+
+</html>
