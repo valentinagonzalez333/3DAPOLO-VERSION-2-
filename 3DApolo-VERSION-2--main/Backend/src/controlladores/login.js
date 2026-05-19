@@ -80,7 +80,7 @@ const login = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("🔥 ERROR LOGIN COMPLETO:", error);
+    console.error("ERROR LOGIN COMPLETO:", error);
 
     return res.status(500).json({
       mensaje: "Error interno en login",
