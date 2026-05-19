@@ -26,7 +26,7 @@ async function login() {
   btnLogin.textContent = 'Entrando...';
 
   try {
-    const respuesta = await fetch('/api/auth/login', {
+    const respuesta = await fetch('https://joyful-spontaneity-production-409d.up.railway.app/api/auth/login', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ usuario, contrasena }),
