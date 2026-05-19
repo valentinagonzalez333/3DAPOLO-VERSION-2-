@@ -6,9 +6,25 @@ const cookieParser = require('cookie-parser');
 
 const { verificarToken } = require('./middlewares/middlewares');
 
-
-
 const app = express();
+
+
+app.use(cors({
+  origin: [
+    'https://3dapolo.vercel.app',
+    'http://localhost:3000'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
+}));
+
+
+app.use(morgan('dev'));
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+
 app.use((req, res, next) => {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, private');
   res.setHeader('Pragma', 'no-cache');
@@ -16,11 +32,9 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(cors());
-app.use(morgan('dev'));
-app.use(express.json());
-app.use(cookieParser());
+
 app.use(express.static(path.join(__dirname, '../../Frontend')));
+
 
 app.use('/api/auth', require('./routes/login'));
 app.use('/api/productos', require('./routes/productos'));
@@ -37,6 +51,8 @@ app.use('/api/compras', require('./routes/compra'));
 app.use('/api/informes', require('./routes/informes'));
 app.use('/api/movimientos', require('./routes/movimientos'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+
+
 
 const pagesDir = path.join(__dirname, '../../Frontend/pages');
 
@@ -73,11 +89,15 @@ const rutasProtegidas = {
 };
 
 Object.entries(rutasPublicas).forEach(([ruta, archivo]) => {
-  app.get(ruta, (req, res) => res.sendFile(path.join(pagesDir, archivo)));
+  app.get(ruta, (req, res) => {
+    res.sendFile(path.join(pagesDir, archivo));
+  });
 });
 
 Object.entries(rutasProtegidas).forEach(([ruta, archivo]) => {
-  app.get(ruta, verificarToken, (req, res) => res.sendFile(path.join(pagesDir, archivo)));
+  app.get(ruta, verificarToken, (req, res) => {
+    res.sendFile(path.join(pagesDir, archivo));
+  });
 });
 
 module.exports = app;
