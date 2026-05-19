@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administrador</title>
+  <link rel="stylesheet" href="../css/panel.css">
+  <script src="../js/panel.js" defer></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+
+<body>
+  <div class="layout">
+
+
+       <aside class="menu" id="menu">
+      <div class="menu-logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Bienvenido</span>
+      </div>
+ 
+      <nav>
+        <ul>
+          <li><a href="panel.html" class="menu-simple active"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a></li>
+ 
+          <!-- Productos -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="productos.html">
+              <i data-lucide="package"></i><span>Productos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="productos.html"><i data-lucide="box"></i>Productos</a></li>
+              <li><a href="/categorias"><i data-lucide="tag"></i>Categorías</a></li>
+              <li><a href="/unidades"><i data-lucide="ruler"></i>Unidades</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Proveedores -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="truck"></i><span>Proveedores</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/proveedores"><i data-lucide="building-2"></i>Proveedores</a></li>
+              <li><a href="/productos-proveedor"><i data-lucide="package-search"></i>Productos por proveedor</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Producción -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="factory"></i><span>Producción</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/ordenes"><i data-lucide="clipboard-list"></i>Órdenes de producción</a></li>
+              <li><a href="/materias"><i data-lucide="layers"></i>Materias primas</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Compras -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="shopping-cart"></i><span>Compras</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-compra"><i data-lucide="plus-circle"></i>Registrar compra</a></li>
+              <li><a href="/historial-compras"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Ventas -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="trending-up"></i><span>Ventas</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/nueva-venta"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
+              <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
+              <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Gastos -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="wallet"></i><span>Gastos</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/registrar-gasto"><i data-lucide="plus-circle"></i>Registrar gasto</a></li>
+              <li><a href="/historial-gastos"><i data-lucide="history"></i>Historial</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Informes -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="bar-chart-2"></i><span>Informes</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/venta-periodo"><i data-lucide="calendar-range"></i>Venta por periodo</a></li>
+              <li><a href="/ganancias"><i data-lucide="trending-up"></i>Ganancias por productos</a></li>
+              <li><a href="/mas-vendido"><i data-lucide="award"></i>Producto más vendido</a></li>
+              <li><a href="/gastos-categoria"><i data-lucide="pie-chart"></i>Gastos por categoría</a></li>
+              <li><a href="/inventario"><i data-lucide="archive"></i>Inventario actual</a></li>
+            </ul>
+          </li>
+ 
+          <!-- Configuración -->
+          <li class="menu-item-padre">
+            <a class="menu-padre" href="#">
+              <i data-lucide="settings"></i><span>Configuración</span>
+              <svg class="menu-flecha" viewBox="0 0 10 10" fill="none"><path d="M3 4L5 6L7 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </a>
+            <ul class="submenu">
+              <li><a href="/perfil"><i data-lucide="user-circle"></i>Mi perfil</a></li>
+              <li><a href="/usuarios"><i data-lucide="users"></i>Usuarios</a></li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main class="contenido">
+
+
+      <button class="btn-menu" id="btn">☰</button>
+
+      <!-- From Uiverse.io by Pradeepsaranbishnoi -->
+      <div class="container">
+        <div class="toggle">
+          <input type="checkbox" id="btn_modo">
+          <span class="button"></span>
+          <span class="label">☼</span>
+        </div>
+      </div>
+
+      <div class="form-contenedor">
+        <input type="text" class="buscador" id="buscador" placeholder="Buscar...">
+      </div>
+
+<div class="cards">
+
+  <div class="card ventas">
+    <i data-lucide="trending-up"></i>
+    <p>Ventas</p>
+    <h2 id="ventas">0</h2>
+  </div>
+
+  <div class="card gastos">
+    <i data-lucide="wallet"></i>
+    <p>Gastos</p>
+    <h2 id="gastos">0</h2>
+  </div>
+
+  <div class="card usuarios">
+    <i data-lucide="users"></i>
+    <p>Usuarios</p>
+    <h2 id="usuarios">0</h2>
+  </div>
+
+  <div class="card productos">
+    <i data-lucide="package"></i>
+    <p>Productos</p>
+    <h2 id="productos">0</h2>
+  </div>
+
+</div>
+
+<div class="tabla">
+  <div class="tabla-header">
+    <h3><i data-lucide="receipt"></i> Registro del día</h3>
+    <span>últimos movimientos</span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Descripción</th>
+        <th>Monto</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+
+    <tbody id="tablaDatos"></tbody>
+  </table>
+</div>
+    </main>
+
+  </div>
+
+  <script>
+     lucide.createIcons();
+    const btn = document.getElementById("btn");
+    const menu = document.getElementById("menu");
+
+    btn.addEventListener("click", () => {
+      menu.classList.toggle("activo");
+    });
+  </script>
+  <script>
+  window.history.pushState(null, null, window.location.href);
+
+  window.onpopstate = function () {
+    window.location.href = "/inicio";
+  };
+</script>
+</body>
+
+</html>

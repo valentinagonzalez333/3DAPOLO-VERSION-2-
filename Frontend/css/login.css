@@ -1,0 +1,163 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  min-height: 100vh;
+  font-family: "Roboto Slab", serif;
+  background: #f5ebe6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* ─── FONDO (mismo que landing) ─── */
+.fondo {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+.capa { position: absolute; width: 100%; height: 100%; }
+.suave path { fill: #ff6b1a; opacity: 0.25; }
+.fuerte path { fill: #ff6b1a; }
+
+/* ─── CARD ─── */
+.wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 44px 40px 36px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(255, 107, 26, 0.15);
+  animation: aparecer 0.5s ease;
+}
+
+@keyframes aparecer {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── BRAND ─── */
+.brand {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.brand .logo {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+.brand h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #100f0f;
+}
+.brand h1 span { color: #ff6b1a; }
+.brand p {
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+  font-size: 12.5px;
+  color: #999;
+  margin-top: 4px;
+}
+
+/* ─── CAMPOS ─── */
+.campo {
+  margin-bottom: 18px;
+}
+.campo label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: 7px;
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+}
+.campo input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #e8d8ce;
+  border-radius: 12px;
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+  font-size: 14px;
+  color: #100f0f;
+  background: #fffaf8;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.campo input:focus {
+  border-color: #ff6b1a;
+  box-shadow: 0 0 0 3px rgba(255, 107, 26, 0.1);
+}
+
+/* ─── PASSWORD TOGGLE ─── */
+.pass-wrap {
+  position: relative;
+}
+.pass-wrap input { padding-right: 44px; }
+.ojo {
+  position: absolute;
+  right: 12px; top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  line-height: 1;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+.ojo:hover { opacity: 1; }
+
+/* ─── ERROR ─── */
+.error {
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+  font-size: 12.5px;
+  color: #e53e3e;
+  min-height: 18px;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+/* ─── BOTÓN ─── */
+.btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #ff6b1a, #ff8c42);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-family: "Roboto Slab", serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.15s;
+  margin-top: 6px;
+}
+.btn:hover  { opacity: 0.92; transform: translateY(-1px); }
+.btn:active { transform: scale(0.98); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+/* ─── VOLVER ─── */
+.volver {
+  display: block;
+  text-align: center;
+  margin-top: 20px;
+  font-family: 'Lucida Sans', Geneva, Verdana, sans-serif;
+  font-size: 13px;
+  color: #aaa;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.volver:hover { color: #ff6b1a; }
