@@ -3,26 +3,6 @@
     {
       "source": "/api/:path*",
       "destination": "https://joyful-spontaneity-production-409d.up.railway.app/api/:path*"
-    },
-    {
-      "source": "/registrar-compra",
-      "destination": "/pages/compra.html"
-    },
-    {
-      "source": "/historial-compras",
-      "destination": "/pages/historial-compra.html"
-    },
-    {
-      "source": "/:page.html",
-      "destination": "/pages/:page.html"
-    },
-    {
-      "source": "/:page",
-      "destination": "/pages/:page.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/panel.html"
     }
   ]
 }
