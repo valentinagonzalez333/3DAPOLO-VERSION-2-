@@ -3,6 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://joyful-spontaneity-production-409d.up.railway.app/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
