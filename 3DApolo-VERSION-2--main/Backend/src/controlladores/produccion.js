@@ -61,19 +61,36 @@ const crearOrden = async (req, res) => {
       return err(res, 'Faltan campos requeridos', 400);
     }
 
-    // Calcular costo de materiales desde lista_materiales
+    // Verificar que el producto es fabricado
+    const [[prod]] = await conn.query(
+      `SELECT id_producto, tipo FROM productos WHERE id_producto = ? AND estado = 1`,
+      [+id_producto]
+    );
+    if (!prod) { await conn.rollback(); conn.release(); return err(res, 'Producto no encontrado', 404); }
+    if (prod.tipo !== 'fabricado') { await conn.rollback(); conn.release(); return err(res, 'Solo se pueden producir productos de tipo fabricado', 400); }
+
+    // Calcular costo de materiales
     const [mats] = await conn.query(
-      `SELECT lm.cantidad, mp.costo_prom
+      `SELECT lm.cantidad, mp.costo_prom, mp.stock, mp.nombre AS materia
        FROM lista_materiales lm
        JOIN materias_primas mp ON lm.id_materia = mp.id_materia
        WHERE lm.id_producto = ?`,
       [+id_producto]
     );
 
+    // Verificar stock de materias primas
+    for (const m of mats) {
+      const needed = m.cantidad * +cantidad;
+      if (+m.stock < needed) {
+        await conn.rollback(); conn.release();
+        return err(res, `Stock insuficiente de "${m.materia}": necesita ${needed}, disponible ${m.stock}`, 400);
+      }
+    }
+
     const costo_mat_unit = mats.reduce((s, m) => s + m.cantidad * m.costo_prom, 0);
-    const costo_mat = costo_mat_unit * +cantidad;
-    const costo_total = costo_mat + +costo_mano;
-    const costo_unit = +cantidad > 0 ? costo_total / +cantidad : 0;
+    const costo_mat      = costo_mat_unit * +cantidad;
+    const costo_total    = costo_mat + +costo_mano;
+    const costo_unit     = +cantidad > 0 ? costo_total / +cantidad : 0;
 
     const [result] = await conn.query(
       `INSERT INTO ordenes_produccion
@@ -94,11 +111,63 @@ const crearOrden = async (req, res) => {
 };
 
 const actualizarOrden = async (req, res) => {
+  const conn = await db.getConnection();
   try {
+    await conn.beginTransaction();
     const id = +req.params.id;
     const { estado, notas, costo_mano, fecha_inicio, fecha_fin } = req.body;
 
-    await db.query(
+    // Obtener orden actual
+    const [[orden]] = await conn.query(
+      `SELECT * FROM ordenes_produccion WHERE id_orden = ?`, [id]
+    );
+    if (!orden) { await conn.rollback(); conn.release(); return err(res, 'Orden no encontrada', 404); }
+
+    // Si ya estaba completada o cancelada, no se puede cambiar
+    if (['completada', 'cancelada'].includes(orden.estado) && estado !== orden.estado) {
+      await conn.rollback(); conn.release();
+      return err(res, `La orden ya está ${orden.estado} y no se puede modificar`, 400);
+    }
+
+    // Si pasa a COMPLETADA — descontar materias y sumar stock producto
+    if (estado === 'completada' && orden.estado !== 'completada') {
+      const [mats] = await conn.query(
+        `SELECT lm.id_materia, lm.cantidad, mp.stock, mp.nombre AS materia
+         FROM lista_materiales lm
+         JOIN materias_primas mp ON lm.id_materia = mp.id_materia
+         WHERE lm.id_producto = ?`,
+        [orden.id_producto]
+      );
+
+      // Verificar stock suficiente
+      for (const m of mats) {
+        const needed = m.cantidad * orden.cantidad;
+        if (+m.stock < needed) {
+          await conn.rollback(); conn.release();
+          return err(res, `Stock insuficiente de "${m.materia}": necesita ${needed}, disponible ${m.stock}`, 400);
+        }
+      }
+
+      // Descontar materias primas
+      for (const m of mats) {
+        const consumo = m.cantidad * orden.cantidad;
+        await conn.query(
+          `UPDATE materias_primas SET stock = stock - ? WHERE id_materia = ?`,
+          [consumo, m.id_materia]
+        );
+      }
+
+      // Sumar stock al producto fabricado
+      await conn.query(
+        `UPDATE productos SET stock = stock + ? WHERE id_producto = ?`,
+        [orden.cantidad, orden.id_producto]
+      );
+    }
+
+    // Si pasa a CANCELADA y venía de completada — revertir (opcional, solo si lo necesitan)
+    // Por ahora no revertimos para evitar inconsistencias
+
+    await conn.query(
       `UPDATE ordenes_produccion SET
          estado       = COALESCE(?, estado),
          notas        = COALESCE(?, notas),
@@ -111,8 +180,10 @@ const actualizarOrden = async (req, res) => {
        fecha_inicio || null, fecha_fin || null, id]
     );
 
-    ok(res, { mensaje: 'Orden actualizada' });
+    await conn.commit(); conn.release();
+    ok(res, { mensaje: estado === 'completada' ? 'Orden completada — stock actualizado' : 'Orden actualizada' });
   } catch (e) {
+    await conn.rollback(); conn.release();
     console.error('[actualizarOrden]', e);
     err(res, 'Error al actualizar orden');
   }
@@ -121,9 +192,10 @@ const actualizarOrden = async (req, res) => {
 const eliminarOrden = async (req, res) => {
   try {
     const [[existe]] = await db.query(
-      `SELECT id_orden FROM ordenes_produccion WHERE id_orden = ?`, [+req.params.id]
+      `SELECT id_orden, estado FROM ordenes_produccion WHERE id_orden = ?`, [+req.params.id]
     );
     if (!existe) return err(res, 'Orden no encontrada', 404);
+    if (existe.estado === 'completada') return err(res, 'No se puede eliminar una orden completada', 400);
     await db.query(`DELETE FROM ordenes_produccion WHERE id_orden = ?`, [+req.params.id]);
     ok(res, { mensaje: 'Orden eliminada' });
   } catch (e) {
