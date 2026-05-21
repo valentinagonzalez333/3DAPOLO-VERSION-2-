@@ -83,16 +83,16 @@ function cerrar() { document.getElementById('modal').classList.remove('open'); }
 function editar(id) {
   const m = datos.find(x => x.id_materia === id); if (!m) return;
   editId = id;
-  document.getElementById('m-titulo').textContent      = 'Editar: ' + m.nombre;
-  document.getElementById('f-nombre').value            = m.nombre;
-  document.getElementById('f-unidad').value            = m.id_unidad || '';
-  document.getElementById('f-stock-min').value         = m.stock_min || 0;
-  document.getElementById('f-stock').value             = m.stock || 0;
-  document.getElementById('f-costo').value             = m.costo_prom || 0;
-  document.getElementById('f-prov-display').value      = m.proveedor || 'Sin proveedor asignado';
-  document.getElementById('f-prov').value              = m.id_proveedor || '';
+  document.getElementById('m-titulo').textContent = 'Editar: ' + m.nombre;
+  document.getElementById('f-nombre').value = m.nombre;
+  document.getElementById('f-unidad').value = m.id_unidad || '';
+  document.getElementById('f-stock-min').value = m.stock_min || 0;
+  document.getElementById('f-stock').value = m.stock || 0;
+  document.getElementById('f-costo').value = m.costo_prom || 0;
+  document.getElementById('f-prov-display').value = m.proveedor || 'Sin proveedor asignado';
+  document.getElementById('f-prov').value = m.id_proveedor || '';
   document.getElementById('modal').classList.add('open');
-}cument.getElementById('modal').classList.add('open');
+} document.getElementById('modal').classList.add('open');
 
 
 async function eliminar(id) {
