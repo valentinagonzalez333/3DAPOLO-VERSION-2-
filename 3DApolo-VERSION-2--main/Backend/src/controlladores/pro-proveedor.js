@@ -326,11 +326,27 @@ const quitar = async (req, res) => {
   }
 };
 
+const desasociarMateria = async (req, res) => {
+  try {
+    await db.query(
+      `UPDATE materias_primas
+       SET id_proveedor = NULL
+       WHERE id_materia = ?`,
+      [+req.params.id_materia]
+    );
+
+    ok(res, { mensaje: 'Materia desasociada correctamente' });
+  } catch (e) {
+    console.error('[desasociarMateria]', e);
+    err(res, 'Error al desasociar materia');
+  }
+};
 
 module.exports = {
   listarPorProveedor,
   obtenerDetalle,
   asignar,
   editar,
-  quitar
+  quitar,
+  desasociarMateria
 };
