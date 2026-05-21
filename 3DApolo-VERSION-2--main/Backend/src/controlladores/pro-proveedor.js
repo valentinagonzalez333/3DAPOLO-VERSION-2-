@@ -4,11 +4,10 @@ const ok  = (res, data, status = 200) => res.status(status).json(data);
 const err = (res, msg, status = 500)  => res.status(status).json({ error: msg });
 
 
-/* ───────────────────────────────
-   LISTAR POR PROVEEDOR (PRODUCTOS)
-─────────────────────────────── */
 const listarPorProveedor = async (req, res) => {
   try {
+    const idProv = +req.params.id_proveedor;
+
     const [rows] = await db.query(
       `SELECT
          pp.id_prov_prod,
@@ -25,31 +24,31 @@ const listarPorProveedor = async (req, res) => {
          c.nombre AS categoria,
          'producto' AS tipo
        FROM proveedor_producto pp
-       JOIN productos  p ON pp.id_producto  = p.id_producto
+       JOIN productos p ON pp.id_producto = p.id_producto
        LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
        WHERE pp.id_proveedor = ? AND p.estado = 1
 
        UNION ALL
 
        SELECT
-         NULL AS id_prov_prod,
-         ? AS id_proveedor,
+         NULL        AS id_prov_prod,
+         ?           AS id_proveedor,
          mp.id_materia AS id_producto,
          mp.costo_prom AS precio_compra,
-         NULL AS dias_entrega,
-         0 AS preferido,
-         NULL AS fecha_act,
+         NULL        AS dias_entrega,
+         0           AS preferido,
+         NULL        AS fecha_act,
          mp.nombre,
-         NULL AS precio_venta,
+         NULL        AS precio_venta,
          mp.stock,
          mp.costo_prom,
-         NULL AS categoria,
-         'materia' AS tipo
+         NULL        AS categoria,
+         'materia'   AS tipo
        FROM materias_primas mp
-       WHERE mp.estado = 1
+       WHERE mp.id_proveedor = ? AND mp.estado = 1
 
        ORDER BY nombre ASC`,
-      [+req.params.id_proveedor, +req.params.id_proveedor]
+      [idProv, idProv, idProv]
     );
 
     ok(res, rows);
@@ -60,9 +59,6 @@ const listarPorProveedor = async (req, res) => {
 };
 
 
-/* ───────────────────────────────
-   DETALLE PRODUCTO PROVEEDOR
-─────────────────────────────── */
 const obtenerDetalle = async (req, res) => {
   try {
     const [[row]] = await db.query(
@@ -76,10 +72,8 @@ const obtenerDetalle = async (req, res) => {
        WHERE pp.id_prov_prod = ?`,
       [+req.params.id_prov_prod]
     );
-
     if (!row) return err(res, 'Asignación no encontrada', 404);
     ok(res, row);
-
   } catch (e) {
     console.error('[obtenerDetalle]', e);
     err(res, 'Error al obtener detalle');
@@ -87,12 +81,8 @@ const obtenerDetalle = async (req, res) => {
 };
 
 
-/* ───────────────────────────────
-   ASIGNAR PRODUCTO A PROVEEDOR
-─────────────────────────────── */
 const asignar = async (req, res) => {
   const conn = await db.getConnection();
-
   try {
     await conn.beginTransaction();
 
@@ -109,17 +99,18 @@ const asignar = async (req, res) => {
       return err(res, 'Faltan campos requeridos', 400);
     }
 
+    // Verificar que no exista ya esa combinación
     const [[yaExiste]] = await conn.query(
       `SELECT id_prov_prod FROM proveedor_producto
        WHERE id_proveedor = ? AND id_producto = ?`,
       [+id_proveedor, +id_producto]
     );
-
     if (yaExiste) {
       await conn.rollback(); conn.release();
-      return err(res, 'Este producto ya está asignado a este proveedor', 409);
+      return err(res, 'Este producto ya está asignado a este proveedor. Usa editar para modificarlo.', 409);
     }
 
+   
     if (+preferido === 1) {
       await conn.query(
         `UPDATE proveedor_producto SET preferido = 0
@@ -130,14 +121,14 @@ const asignar = async (req, res) => {
 
     const [result] = await conn.query(
       `INSERT INTO proveedor_producto
-       (id_proveedor, id_producto, precio_compra, dias_entrega, preferido)
+         (id_proveedor, id_producto, precio_compra, dias_entrega, preferido)
        VALUES (?, ?, ?, ?, ?)`,
       [+id_proveedor, +id_producto, +precio_compra,
        dias_entrega ? +dias_entrega : null, +preferido]
     );
 
     const [[prod]] = await conn.query(
-      `SELECT costo_prom FROM productos WHERE id_producto = ?`,
+      `SELECT costo_prom, precio_venta FROM productos WHERE id_producto = ?`,
       [+id_producto]
     );
 
@@ -151,11 +142,7 @@ const asignar = async (req, res) => {
     await conn.commit();
     conn.release();
 
-    ok(res, {
-      mensaje: 'Producto asignado correctamente',
-      id_prov_prod: result.insertId
-    }, 201);
-
+    ok(res, { mensaje: 'Producto asignado correctamente', id_prov_prod: result.insertId }, 201);
   } catch (e) {
     await conn.rollback();
     conn.release();
@@ -165,12 +152,8 @@ const asignar = async (req, res) => {
 };
 
 
-/* ───────────────────────────────
-   EDITAR ASIGNACIÓN
-─────────────────────────────── */
 const editar = async (req, res) => {
   const conn = await db.getConnection();
-
   try {
     await conn.beginTransaction();
 
@@ -178,10 +161,8 @@ const editar = async (req, res) => {
     const { precio_compra, dias_entrega, preferido } = req.body;
 
     const [[asig]] = await conn.query(
-      `SELECT * FROM proveedor_producto WHERE id_prov_prod = ?`,
-      [id]
+      `SELECT * FROM proveedor_producto WHERE id_prov_prod = ?`, [id]
     );
-
     if (!asig) {
       await conn.rollback(); conn.release();
       return err(res, 'Asignación no encontrada', 404);
@@ -205,7 +186,7 @@ const editar = async (req, res) => {
         precio_compra !== undefined ? +precio_compra : null,
         dias_entrega  !== undefined ? +dias_entrega  : null,
         preferido !== undefined ? +preferido : asig.preferido,
-        id
+        id,
       ]
     );
 
@@ -218,9 +199,7 @@ const editar = async (req, res) => {
 
     await conn.commit();
     conn.release();
-
     ok(res, { mensaje: 'Asignación actualizada' });
-
   } catch (e) {
     await conn.rollback();
     conn.release();
@@ -229,17 +208,12 @@ const editar = async (req, res) => {
   }
 };
 
-
-/* ───────────────────────────────
-   QUITAR ASIGNACIÓN
-─────────────────────────────── */
 const quitar = async (req, res) => {
   try {
     const [[existe]] = await db.query(
       `SELECT id_prov_prod FROM proveedor_producto WHERE id_prov_prod = ?`,
       [+req.params.id_prov_prod]
     );
-
     if (!existe) return err(res, 'Asignación no encontrada', 404);
 
     await db.query(
@@ -248,18 +222,10 @@ const quitar = async (req, res) => {
     );
 
     ok(res, { mensaje: 'Producto quitado del proveedor' });
-
   } catch (e) {
     console.error('[quitar]', e);
     err(res, 'Error al quitar producto');
   }
 };
 
-
-module.exports = {
-  listarPorProveedor,
-  obtenerDetalle,
-  asignar,
-  editar,
-  quitar
-};
+module.exports = { listarPorProveedor, obtenerDetalle, asignar, editar, quitar };
