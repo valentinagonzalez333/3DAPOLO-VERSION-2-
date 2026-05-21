@@ -164,7 +164,6 @@ for (const item of detalle) {
   }
 };
 
-
 const cambiarEstado = async (req, res) => {
   const conn = await db.getConnection();
   try {
@@ -226,10 +225,10 @@ const cambiarEstado = async (req, res) => {
             [costoPromAnt, +costoPromNew.toFixed(4), item.id_det_compra]
           );
 
-
+          // Ajustado: Se añade explícitamente id_materia como NULL para productos
           await conn.query(
-            `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
-   VALUES (?, ?, 'compra', 'producto', ?, ?, ?)`,
+            `INSERT INTO movimientos (id_producto, id_materia, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+             VALUES (?, NULL, ?, 'compra', 'producto', ?, ?, ?)`,
             [prod.id_producto, req.usuario?.id || null, id, +item.cantidad, +item.precio_unit]
           );
         } else {
@@ -256,9 +255,11 @@ const cambiarEstado = async (req, res) => {
                WHERE id_det_compra = ?`,
               [costoPromAnt, +costoPromNew.toFixed(4), item.id_det_compra]
             );
+            
+            // CORREGIDO: id_producto va en NULL e insertamos el ID en id_materia
             await conn.query(
-              `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
-   VALUES (?, ?, 'compra', 'materia', ?, ?, ?)`,
+              `INSERT INTO movimientos (id_producto, id_materia, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+               VALUES (NULL, ?, ?, 'compra', 'materia', ?, ?, ?)`,
               [mp.id_materia, req.usuario?.id || null, id, +item.cantidad, +item.precio_unit]
             );
           }
