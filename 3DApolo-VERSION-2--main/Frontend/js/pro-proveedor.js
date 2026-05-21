@@ -1,4 +1,3 @@
-
 const body = document.body;
 const mode = document.getElementById("btn_modo");
 
@@ -6,22 +5,23 @@ if (localStorage.getItem("mode") === "dark") {
   body.classList.add("dark-mode");
   if (mode) mode.checked = true;
 }
-
 mode?.addEventListener("change", () => {
   const isDark = body.classList.toggle("dark-mode");
   localStorage.setItem("mode", isDark ? "dark" : "light");
 });
+
 const API_PROV = '/api/proveedores';
 const API_PROD = '/api/productos';
 const API_PP   = '/api/proveedor-producto';
 
 let proveedorActivo = null;
 let editandoId      = null;
+let editandoMateria = null;
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 
 const fmt = (n) =>
-  Number(n).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
+  Number(n || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
 const apiFetch = async (url, opts = {}) => {
   const token = localStorage.getItem('token') || '';
@@ -37,7 +37,7 @@ const apiFetch = async (url, opts = {}) => {
   return res.json();
 };
 
-
+// ── Cargar select de proveedores ───────────────────────────────────────────
 const cargarSelectProveedores = async () => {
   const data = await apiFetch(`${API_PROV}?limite=200`);
   if (!data) return;
@@ -57,10 +57,10 @@ const cargarSelectProveedores = async () => {
   }
 };
 
-
+// ── Cargar productos del proveedor ─────────────────────────────────────────
 const cargarProductosProveedor = async (idProveedor) => {
   const tbody = $('#tabla-body');
-  tbody.innerHTML = `<tr><td colspan="7" class="cargando">Cargando...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="cargando">Cargando...</td></tr>`;
   $('#seccion-tabla').style.display = 'block';
   $('#estado-vacio').style.display  = 'none';
 
@@ -70,42 +70,72 @@ const cargarProductosProveedor = async (idProveedor) => {
   tbody.innerHTML = '';
 
   if (!data.length) {
-    tbody.innerHTML = `<tr><td colspan="7" class="cargando">Este proveedor no tiene productos asignados</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="cargando">Este proveedor no tiene productos asignados</td></tr>`;
     return;
   }
 
   data.forEach((p) => {
-    const margen = p.precio_venta && p.precio_compra
+    const esMateria = p.tipo === 'materia';
+
+    const tipoBadge = esMateria
+      ? `<span class="badge badge-naranja">Materia prima</span>`
+      : `<span class="badge badge-azul">Producto</span>`;
+
+    const margen = !esMateria && p.precio_venta && p.precio_compra
       ? (((p.precio_venta - p.precio_compra) / p.precio_venta) * 100).toFixed(1)
-      : '—';
+      : null;
+
+    const precioVentaCol = esMateria
+      ? `<span class="muted">N/A</span>`
+      : (p.precio_venta > 0 ? fmt(p.precio_venta) : '<span class="muted">—</span>');
+
+    const margenCol = esMateria
+      ? `<span class="muted">N/A</span>`
+      : (margen !== null ? `${margen}%` : '—%');
+
+    const preferidoCol = esMateria
+      ? `<span class="muted">—</span>`
+      : (p.preferido
+          ? `<span class="badge badge-verde">⭐ Sí</span>`
+          : `<span class="badge badge-amarillo">No</span>`);
+
+    // Materias: solo editar costo. Productos: editar y quitar.
+    const acciones = esMateria
+      ? `<button class="btn-icono btn-editar" title="Editar costo"
+           onclick="abrirEditarMateria(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_compra})">✏️</button>`
+      : `<button class="btn-icono btn-editar" title="Editar"
+           onclick="abrirEditarAsignacion(${p.id_prov_prod}, ${p.id_producto})">✏️</button>
+         <button class="btn-icono btn-elim" title="Quitar"
+           onclick="quitarProducto(${p.id_prov_prod}, '${p.nombre.replace(/'/g, "\\'")}')">🗑</button>`;
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
-        <td><strong>${p.nombre}</strong><br><small class="muted">${p.categoria || '—'}</small></td>
-        <td>${fmt(p.precio_compra)}</td>
-        <td>${margen}%</td>
-        <td>${p.precio_venta > 0 ? fmt(p.precio_venta) : '<span class="muted">—</span>'}</td>
-        <td>${p.dias_entrega ?? '—'} días</td>
-        <td>${p.preferido ? '<span class="badge badge-verde">⭐ Sí</span>' : '<span class="badge badge-amarillo">No</span>'}</td>
-        <td class="acciones">
-          <button class="btn-icono btn-editar" title="Editar"
-            onclick="abrirEditarAsignacion(${p.id_prov_prod}, ${p.id_producto})">✏️</button>
-          <button class="btn-icono btn-elim" title="Quitar"
-            onclick="quitarProducto(${p.id_prov_prod}, '${p.nombre}')">🗑</button>
+        <td>
+          <strong>${p.nombre}</strong><br>
+          <small class="muted">${p.categoria || '—'}</small>
         </td>
+        <td>${tipoBadge}</td>
+        <td>${fmt(p.precio_compra)}</td>
+        <td>${margenCol}</td>
+        <td>${precioVentaCol}</td>
+        <td>${p.dias_entrega != null ? p.dias_entrega + ' días' : '— días'}</td>
+        <td>${preferidoCol}</td>
+        <td class="acciones">${acciones}</td>
       </tr>
     `);
   });
 };
 
+// ── Cambio de proveedor ────────────────────────────────────────────────────
 $('#select-proveedor').addEventListener('change', async (e) => {
   const id = e.target.value;
+
   if (!id) {
     proveedorActivo = null;
     $('#estado-vacio').style.display  = 'block';
     $('#seccion-tabla').style.display = 'none';
     $('#nombre-proveedor-activo').textContent = '— Selecciona un proveedor';
-    $('#btn-asignar').disabled = true;
+    $('#btn-asignar').disabled  = true;
     $('#buscar-input').disabled = true;
     return;
   }
@@ -120,56 +150,81 @@ $('#select-proveedor').addEventListener('change', async (e) => {
   await cargarSelectProductos();
 });
 
+// ── Cargar productos disponibles para asignar (solo tipo comprado) ─────────
 const cargarSelectProductos = async () => {
-  const data = await apiFetch(`${API_PROD}?limite=500`);
-  console.log(data);
-
+  const data = await apiFetch(`${API_PROD}?limite=500&tipo=comprado`);
   if (!data) return;
 
   const sel = $('#form-producto');
-
   sel.innerHTML = '<option value="">— Seleccionar —</option>';
 
-  const productos = data.datos || data;
-
+  const productos = data.datos || [];
   productos.forEach(({ id_producto, nombre }) => {
-    sel.insertAdjacentHTML(
-      'beforeend',
+    sel.insertAdjacentHTML('beforeend',
       `<option value="${id_producto}">${nombre}</option>`
     );
   });
 };
 
-
+// ── Modal asignar nuevo producto ───────────────────────────────────────────
 const abrirModalAsignar = () => {
-  editandoId = null;
-  $('#modal-asignar-titulo').textContent = 'Asignar producto';
+  editandoId      = null;
+  editandoMateria = null;
+
+  $('#modal-asignar-titulo').textContent  = 'Asignar producto';
   $('#form-asignar').reset();
   $('#row-producto-select').style.display = 'block';
-  $('#form-precio-venta-calc').value = '';
+  $('#form-precio-venta-calc').value      = '';
+
+  // Restaurar campos que pudieron ocultarse
+  const pvGroup   = $('#form-precio-venta-calc').closest('.form-group');
+  const prefGroup = document.getElementById('form-preferido')?.closest('.form-group');
+  if (pvGroup)   pvGroup.style.display   = 'block';
+  if (prefGroup) prefGroup.style.display = 'block';
+
   $('#modal-asignar').classList.add('visible');
 };
 
 const cerrarModalAsignar = () => {
   $('#modal-asignar').classList.remove('visible');
   $('#form-asignar').reset();
-  editandoId = null;
+  editandoId      = null;
+  editandoMateria = null;
+
+  // Restaurar campos ocultos
+  $('#row-producto-select').style.display = 'block';
+  const pvGroup   = $('#form-precio-venta-calc').closest('.form-group');
+  const prefGroup = document.getElementById('form-preferido')?.closest('.form-group');
+  if (pvGroup)   pvGroup.style.display   = 'block';
+  if (prefGroup) prefGroup.style.display = 'block';
 };
 window.cerrarModalAsignar = cerrarModalAsignar;
 
-
+// ── Editar asignación de producto comprado ─────────────────────────────────
 window.abrirEditarAsignacion = async (idPP, idProducto) => {
-  editandoId = idPP;
+  if (!idPP || isNaN(idPP)) {
+    mostrarToast('ID de asignación inválido', 'error');
+    return;
+  }
+
+  editandoId      = idPP;
+  editandoMateria = null;
+
   const data = await apiFetch(`${API_PP}/detalle/${idPP}`);
   if (!data || data.error) return mostrarToast('Error al cargar', 'error');
 
-  $('#modal-asignar-titulo').textContent = 'Editar asignación';
-  $('#row-producto-select').style.display = 'none'; // No se cambia el producto al editar
-  $('#form-precio-compra').value = data.precio_compra;
-  $('#form-dias').value          = data.dias_entrega || '';
-  $('#form-preferido').checked   = !!data.preferido;
+  $('#modal-asignar-titulo').textContent  = 'Editar asignación';
+  $('#row-producto-select').style.display = 'none';
+  $('#form-precio-compra').value          = data.precio_compra;
+  $('#form-dias').value                   = data.dias_entrega || '';
+  $('#form-preferido').checked            = !!data.preferido;
 
-  // Calcular margen actual
+  // Restaurar campos
+  const pvGroup   = $('#form-precio-venta-calc').closest('.form-group');
+  const prefGroup = document.getElementById('form-preferido')?.closest('.form-group');
+  if (pvGroup)   pvGroup.style.display   = 'block';
+  if (prefGroup) prefGroup.style.display = 'block';
+
   if (data.precio_venta && data.precio_compra) {
     const margen = (((data.precio_venta - data.precio_compra) / data.precio_venta) * 100).toFixed(1);
     $('#form-margen').value = margen;
@@ -179,7 +234,29 @@ window.abrirEditarAsignacion = async (idPP, idProducto) => {
   $('#modal-asignar').classList.add('visible');
 };
 
+// ── Editar costo de materia prima ──────────────────────────────────────────
+window.abrirEditarMateria = (idMateria, nombre, costoActual) => {
+  editandoId      = null;
+  editandoMateria = { id: idMateria, nombre };
 
+  $('#modal-asignar-titulo').textContent  = `Editar costo: ${nombre}`;
+  $('#row-producto-select').style.display = 'none';
+  $('#form-precio-compra').value          = costoActual;
+  $('#form-margen').value                 = '';
+  $('#form-precio-venta-calc').value      = '';
+  $('#form-dias').value                   = '';
+  $('#form-preferido').checked            = false;
+
+  // Ocultar campos irrelevantes para materia prima
+  const pvGroup   = $('#form-precio-venta-calc').closest('.form-group');
+  const prefGroup = document.getElementById('form-preferido')?.closest('.form-group');
+  if (pvGroup)   pvGroup.style.display   = 'none';
+  if (prefGroup) prefGroup.style.display = 'none';
+
+  $('#modal-asignar').classList.add('visible');
+};
+
+// ── Calcular precio venta automático ──────────────────────────────────────
 const calcularPrecioVenta = () => {
   const compra = +$('#form-precio-compra').value || 0;
   const margen = +$('#form-margen').value || 0;
@@ -193,6 +270,7 @@ const calcularPrecioVenta = () => {
 $('#form-precio-compra').addEventListener('input', calcularPrecioVenta);
 $('#form-margen').addEventListener('input', calcularPrecioVenta);
 
+// ── Submit ─────────────────────────────────────────────────────────────────
 $('#form-asignar').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('#btn-guardar-asignar');
@@ -200,46 +278,65 @@ $('#form-asignar').addEventListener('submit', async (e) => {
   btn.textContent = 'Guardando...';
 
   const precioCompra = +$('#form-precio-compra').value;
-  const precioVenta  = +$('#form-precio-venta-calc').value || precioCompra;
-  const idProducto   = +$('#form-producto').value;
-  const diasEntrega  = $('#form-dias').value ? +$('#form-dias').value : null;
-  const preferido    = $('#form-preferido').checked ? 1 : 0;
 
-  let url, method, body;
+  // ── Caso: edición de costo de materia prima ──
+  if (editandoMateria) {
+    const data = await apiFetch(`/api/produccion/materias/${editandoMateria.id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ costo_prom: precioCompra }),
+    });
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+    if (data?.error) { mostrarToast(data.error, 'error'); return; }
+    mostrarToast('Costo actualizado', 'ok');
+    cerrarModalAsignar();
+    cargarProductosProveedor(proveedorActivo);
+    return;
+  }
+
+  // ── Caso: asignar o editar producto comprado ──
+  const precioVenta = +$('#form-precio-venta-calc').value || precioCompra;
+  const idProducto  = +$('#form-producto').value;
+  const diasEntrega = $('#form-dias').value ? +$('#form-dias').value : null;
+  const preferido   = $('#form-preferido').checked ? 1 : 0;
+
+  let url, method, bodyData;
 
   if (editandoId) {
-
-    url    = `${API_PP}/${editandoId}`;
-    method = 'PUT';
-    body   = { precio_compra: precioCompra, dias_entrega: diasEntrega, preferido };
+    url      = `${API_PP}/${editandoId}`;
+    method   = 'PUT';
+    bodyData = { precio_compra: precioCompra, dias_entrega: diasEntrega, preferido };
   } else {
-  
     if (!idProducto) {
       mostrarToast('Selecciona un producto', 'error');
       btn.disabled = false;
       btn.textContent = 'Guardar';
       return;
     }
-    url    = API_PP;
-    method = 'POST';
-    body   = {
-      id_proveedor: proveedorActivo,
-      id_producto:  idProducto,
+    url      = API_PP;
+    method   = 'POST';
+    bodyData = {
+      id_proveedor:  proveedorActivo,
+      id_producto:   idProducto,
       precio_compra: precioCompra,
       dias_entrega:  diasEntrega,
       preferido,
     };
   }
 
-  const data = await apiFetch(url, { method, body: JSON.stringify(body) });
+  const data = await apiFetch(url, { method, body: JSON.stringify(bodyData) });
   btn.disabled = false;
   btn.textContent = 'Guardar';
 
   if (data?.error) { mostrarToast(data.error, 'error'); return; }
 
   // Actualizar precio_venta y costo_prom en el producto
-  if (precioVenta > 0 && idProducto) {
-    await apiFetch(`${API_PROD}/${editandoId ? (await apiFetch(`${API_PP}/detalle/${editandoId}`))?.id_producto : idProducto}`, {
+  const idProdFinal = editandoId
+    ? (await apiFetch(`${API_PP}/detalle/${editandoId}`))?.id_producto
+    : idProducto;
+
+  if (precioVenta > 0 && idProdFinal) {
+    await apiFetch(`${API_PROD}/${idProdFinal}`, {
       method: 'PUT',
       body: JSON.stringify({ precio_venta: precioVenta, costo_prom: precioCompra }),
     });
@@ -250,15 +347,21 @@ $('#form-asignar').addEventListener('submit', async (e) => {
   cargarProductosProveedor(proveedorActivo);
 });
 
-
+// ── Quitar producto ────────────────────────────────────────────────────────
 window.quitarProducto = async (idPP, nombre) => {
+  if (!idPP || isNaN(+idPP)) {
+    mostrarToast('No se puede quitar este item', 'error');
+    return;
+  }
   if (!confirm(`¿Quitar "${nombre}" de este proveedor?`)) return;
+
   const data = await apiFetch(`${API_PP}/${idPP}`, { method: 'DELETE' });
   if (data?.error) return mostrarToast(data.error, 'error');
   mostrarToast('Producto quitado', 'ok');
   cargarProductosProveedor(proveedorActivo);
 };
 
+// ── Toast ──────────────────────────────────────────────────────────────────
 const mostrarToast = (msg, tipo = 'ok') => {
   const t = document.createElement('div');
   t.className = `toast toast-${tipo}`;
@@ -274,4 +377,5 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrarModalAsignar();
 });
 
+// ── Init ───────────────────────────────────────────────────────────────────
 cargarSelectProveedores();
