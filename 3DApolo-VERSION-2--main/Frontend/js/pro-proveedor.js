@@ -100,13 +100,15 @@ const cargarProductosProveedor = async (idProveedor) => {
           : `<span class="badge badge-amarillo">No</span>`);
 
     // Materias: solo editar costo. Productos: editar y quitar.
-    const acciones = esMateria
-      ? `<button class="btn-icono btn-editar" title="Editar costo"
-           onclick="abrirEditarMateria(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_compra})">✏️</button>`
-      : `<button class="btn-icono btn-editar" title="Editar"
-           onclick="abrirEditarAsignacion(${p.id_prov_prod}, ${p.id_producto})">✏️</button>
-         <button class="btn-icono btn-elim" title="Quitar"
-           onclick="quitarProducto(${p.id_prov_prod}, '${p.nombre.replace(/'/g, "\\'")}')">🗑</button>`;
+   const acciones = esMateria
+  ? `<button class="btn-icono btn-editar" title="Editar costo"
+       onclick="abrirEditarMateria(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_compra})">✏️</button>
+     <button class="btn-icono btn-elim" title="Desasociar de este proveedor"
+       onclick="desasociarMateria(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}')">🗑</button>`
+  : `<button class="btn-icono btn-editar" title="Editar"
+       onclick="abrirEditarAsignacion(${p.id_prov_prod}, ${p.id_producto})">✏️</button>
+     <button class="btn-icono btn-elim" title="Quitar"
+       onclick="quitarProducto(${p.id_prov_prod}, '${p.nombre.replace(/'/g, "\\'")}')">🗑</button>`;
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -376,6 +378,18 @@ $('#btn-asignar').addEventListener('click', abrirModalAsignar);
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrarModalAsignar();
 });
+window.desasociarMateria = async (idMateria, nombre) => {
+  if (!confirm(`¿Desasociar "${nombre}" de este proveedor? La materia prima seguirá existiendo.`)) return;
+
+  const data = await apiFetch(
+    `/api/proveedor-producto/materia/${idMateria}/desasociar`,
+    { method: 'PATCH', body: JSON.stringify({}) }
+  );
+
+  if (data?.error) return mostrarToast(data.error, 'error');
+  mostrarToast('Materia desasociada del proveedor', 'ok');
+  cargarProductosProveedor(proveedorActivo);
+};
 
 // ── Init ───────────────────────────────────────────────────────────────────
 cargarSelectProveedores();
