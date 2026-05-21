@@ -92,7 +92,7 @@ function editar(id) {
   document.getElementById('f-prov-display').value      = m.proveedor || 'Sin proveedor asignado';
   document.getElementById('f-prov').value              = m.id_proveedor || '';
   document.getElementById('modal').classList.add('open');
-}document.getElementById('modal').classList.add('open');
+}cument.getElementById('modal').classList.add('open');
 
 
 async function eliminar(id) {

@@ -1,54 +1,84 @@
 const db = require('../confg/db_conexion');
 
 const ok  = (res, data, status = 200) => res.status(status).json(data);
-const err = (res, msg, status = 500)  => res.status(status).json({ error: msg });
+const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 
-
+/* ─────────────────────────────────────────────
+   LISTAR POR PROVEEDOR (PRODUCTOS + MATERIAS)
+───────────────────────────────────────────── */
 const listarPorProveedor = async (req, res) => {
   try {
+    const id = +req.params.id_proveedor;
+
     const [rows] = await db.query(
-      `SELECT
-         pp.id_prov_prod,
-         pp.id_proveedor,
-         pp.id_producto,
-         pp.precio_compra,
-         pp.dias_entrega,
-         pp.preferido,
-         pp.fecha_act,
-         p.nombre,
-         p.precio_venta,
-         p.stock,
-         p.costo_prom,
-         c.nombre AS categoria
-       FROM proveedor_producto pp
-       JOIN productos  p ON pp.id_producto  = p.id_producto
-       LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
-       WHERE pp.id_proveedor = ? AND p.estado = 1
-       ORDER BY p.nombre ASC`,
-      [+req.params.id_proveedor]
+      `
+      SELECT
+        'producto' AS tipo,
+        pp.id_prov_prod AS id_relacion,
+        pp.id_producto AS id_item,
+        pp.id_proveedor,
+        pp.precio_compra,
+        pp.dias_entrega,
+        pp.preferido,
+        pp.fecha_act,
+        p.nombre,
+        p.stock,
+        p.costo_prom,
+        c.nombre AS categoria
+      FROM proveedor_producto pp
+      JOIN productos p ON pp.id_producto = p.id_producto
+      LEFT JOIN categorias c ON p.id_categoria = c.id_categoria
+      WHERE pp.id_proveedor = ? AND p.estado = 1
+
+      UNION ALL
+
+      SELECT
+        'materia' AS tipo,
+        NULL AS id_relacion,
+        mp.id_materia AS id_item,
+        NULL AS id_proveedor,
+        mp.costo_prom AS precio_compra,
+        NULL AS dias_entrega,
+        0 AS preferido,
+        NULL AS fecha_act,
+        mp.nombre,
+        mp.stock,
+        mp.costo_prom,
+        NULL AS categoria
+      FROM materias_primas mp
+      WHERE mp.estado = 1
+      `,
+      [id]
     );
+
     ok(res, rows);
   } catch (e) {
     console.error('[listarPorProveedor]', e);
-    err(res, 'Error al obtener productos del proveedor');
+    err(res, 'Error al obtener datos del proveedor');
   }
 };
 
-
+/* ─────────────────────────────────────────────
+   DETALLE DE ASIGNACIÓN (PRODUCTOS SOLO)
+───────────────────────────────────────────── */
 const obtenerDetalle = async (req, res) => {
   try {
     const [[row]] = await db.query(
-      `SELECT
-         pp.*,
-         p.nombre,
-         p.precio_venta,
-         p.costo_prom
-       FROM proveedor_producto pp
-       JOIN productos p ON pp.id_producto = p.id_producto
-       WHERE pp.id_prov_prod = ?`,
+      `
+      SELECT
+        pp.*,
+        p.nombre,
+        p.precio_venta,
+        p.costo_prom
+      FROM proveedor_producto pp
+      JOIN productos p ON pp.id_producto = p.id_producto
+      WHERE pp.id_prov_prod = ?
+      `,
       [+req.params.id_prov_prod]
     );
+
     if (!row) return err(res, 'Asignación no encontrada', 404);
+
     ok(res, row);
   } catch (e) {
     console.error('[obtenerDetalle]', e);
@@ -56,91 +86,118 @@ const obtenerDetalle = async (req, res) => {
   }
 };
 
-
+/* ─────────────────────────────────────────────
+   ASIGNAR PRODUCTO O ACTUALIZAR MATERIA PRIMA
+───────────────────────────────────────────── */
 const asignar = async (req, res) => {
   const conn = await db.getConnection();
+
   try {
     await conn.beginTransaction();
 
     const {
       id_proveedor,
-      id_producto,
+      id_item,
+      tipo, // 'producto' | 'materia'
       precio_compra,
       dias_entrega = null,
-      preferido    = 0,
+      preferido = 0
     } = req.body;
 
-    if (!id_proveedor || !id_producto || !precio_compra) {
-      await conn.rollback(); conn.release();
+    if (!id_proveedor || !id_item || !tipo) {
+      await conn.rollback();
+      conn.release();
       return err(res, 'Faltan campos requeridos', 400);
     }
 
-    // Verificar que no exista ya esa combinación
-    const [[yaExiste]] = await conn.query(
-      `SELECT id_prov_prod FROM proveedor_producto
-       WHERE id_proveedor = ? AND id_producto = ?`,
-      [+id_proveedor, +id_producto]
-    );
-    if (yaExiste) {
-      await conn.rollback(); conn.release();
-      return err(res, 'Este producto ya está asignado a este proveedor. Usa editar para modificarlo.', 409);
-    }
+    /* ───────────── PRODUCTO ───────────── */
+    if (tipo === 'producto') {
 
-   
-    if (+preferido === 1) {
-      await conn.query(
-        `UPDATE proveedor_producto SET preferido = 0
-         WHERE id_producto = ?`,
-        [+id_producto]
+      const [[existe]] = await conn.query(
+        `SELECT id_prov_prod FROM proveedor_producto
+         WHERE id_proveedor = ? AND id_producto = ?`,
+        [id_proveedor, id_item]
       );
+
+      if (existe) {
+        await conn.rollback();
+        conn.release();
+        return err(res, 'Este producto ya está asignado', 409);
+      }
+
+      if (+preferido === 1) {
+        await conn.query(
+          `UPDATE proveedor_producto SET preferido = 0
+           WHERE id_producto = ?`,
+          [id_item]
+        );
+      }
+
+      await conn.query(
+        `INSERT INTO proveedor_producto
+         (id_proveedor, id_producto, precio_compra, dias_entrega, preferido)
+         VALUES (?, ?, ?, ?, ?)`,
+        [id_proveedor, id_item, precio_compra, dias_entrega, preferido]
+      );
+
+      const [[prod]] = await conn.query(
+        `SELECT costo_prom FROM productos WHERE id_producto = ?`,
+        [id_item]
+      );
+
+      if (+preferido === 1 || +prod.costo_prom === 0) {
+        await conn.query(
+          `UPDATE productos SET costo_prom = ? WHERE id_producto = ?`,
+          [precio_compra, id_item]
+        );
+      }
     }
 
-    const [result] = await conn.query(
-      `INSERT INTO proveedor_producto
-         (id_proveedor, id_producto, precio_compra, dias_entrega, preferido)
-       VALUES (?, ?, ?, ?, ?)`,
-      [+id_proveedor, +id_producto, +precio_compra,
-       dias_entrega ? +dias_entrega : null, +preferido]
-    );
+    /* ───────────── MATERIA PRIMA ───────────── */
+    if (tipo === 'materia') {
 
-    const [[prod]] = await conn.query(
-      `SELECT costo_prom, precio_venta FROM productos WHERE id_producto = ?`,
-      [+id_producto]
-    );
-
-    if (+preferido === 1 || +prod.costo_prom === 0) {
       await conn.query(
-        `UPDATE productos SET costo_prom = ? WHERE id_producto = ?`,
-        [+precio_compra, +id_producto]
+        `UPDATE materias_primas
+         SET costo_prom = ?
+         WHERE id_materia = ?`,
+        [precio_compra, id_item]
       );
     }
 
     await conn.commit();
     conn.release();
 
-    ok(res, { mensaje: 'Producto asignado correctamente', id_prov_prod: result.insertId }, 201);
+    ok(res, { mensaje: 'Operación realizada correctamente' }, 201);
+
   } catch (e) {
     await conn.rollback();
     conn.release();
     console.error('[asignar]', e);
-    err(res, 'Error al asignar producto');
+    err(res, 'Error al asignar');
   }
 };
 
-
+/* ─────────────────────────────────────────────
+   EDITAR ASIGNACIÓN (SOLO PRODUCTOS)
+───────────────────────────────────────────── */
 const editar = async (req, res) => {
   const conn = await db.getConnection();
+
   try {
     await conn.beginTransaction();
 
     const id = +req.params.id_prov_prod;
+
     const { precio_compra, dias_entrega, preferido } = req.body;
 
     const [[asig]] = await conn.query(
-      `SELECT * FROM proveedor_producto WHERE id_prov_prod = ?`, [id]
+      `SELECT * FROM proveedor_producto WHERE id_prov_prod = ?`,
+      [id]
     );
+
     if (!asig) {
-      await conn.rollback(); conn.release();
+      await conn.rollback();
+      conn.release();
       return err(res, 'Asignación no encontrada', 404);
     }
 
@@ -154,42 +211,48 @@ const editar = async (req, res) => {
 
     await conn.query(
       `UPDATE proveedor_producto SET
-         precio_compra = COALESCE(?, precio_compra),
-         dias_entrega  = COALESCE(?, dias_entrega),
-         preferido     = ?
-       WHERE id_prov_prod = ?`,
+        precio_compra = COALESCE(?, precio_compra),
+        dias_entrega  = COALESCE(?, dias_entrega),
+        preferido     = COALESCE(?, preferido)
+      WHERE id_prov_prod = ?`,
       [
         precio_compra !== undefined ? +precio_compra : null,
-        dias_entrega  !== undefined ? +dias_entrega  : null,
-        preferido !== undefined ? +preferido : asig.preferido,
-        id,
+        dias_entrega !== undefined ? +dias_entrega : null,
+        preferido !== undefined ? +preferido : null,
+        id
       ]
     );
 
     if (+preferido === 1 && precio_compra) {
       await conn.query(
         `UPDATE productos SET costo_prom = ? WHERE id_producto = ?`,
-        [+precio_compra, asig.id_producto]
+        [precio_compra, asig.id_producto]
       );
     }
 
     await conn.commit();
     conn.release();
+
     ok(res, { mensaje: 'Asignación actualizada' });
+
   } catch (e) {
     await conn.rollback();
     conn.release();
-    console.error('[editar asignacion]', e);
+    console.error('[editar]', e);
     err(res, 'Error al editar asignación');
   }
 };
 
+/* ─────────────────────────────────────────────
+   ELIMINAR ASIGNACIÓN
+───────────────────────────────────────────── */
 const quitar = async (req, res) => {
   try {
     const [[existe]] = await db.query(
       `SELECT id_prov_prod FROM proveedor_producto WHERE id_prov_prod = ?`,
       [+req.params.id_prov_prod]
     );
+
     if (!existe) return err(res, 'Asignación no encontrada', 404);
 
     await db.query(
@@ -197,11 +260,18 @@ const quitar = async (req, res) => {
       [+req.params.id_prov_prod]
     );
 
-    ok(res, { mensaje: 'Producto quitado del proveedor' });
+    ok(res, { mensaje: 'Registro eliminado correctamente' });
+
   } catch (e) {
     console.error('[quitar]', e);
-    err(res, 'Error al quitar producto');
+    err(res, 'Error al eliminar');
   }
 };
 
-module.exports = { listarPorProveedor, obtenerDetalle, asignar, editar, quitar };
+module.exports = {
+  listarPorProveedor,
+  obtenerDetalle,
+  asignar,
+  editar,
+  quitar
+};
