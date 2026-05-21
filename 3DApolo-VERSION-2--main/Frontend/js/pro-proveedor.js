@@ -289,16 +289,17 @@ const cargarSelectProductos = async () => {
 // ─────────────────────────────────────────────────────────────
 
 const abrirModalAsignar = () => {
-
   editandoId = null;
   editandoMateria = null;
 
-  $('#modal-asignar-titulo').textContent =
-    'Asignar producto';
-
+  $('#modal-asignar-titulo').textContent = 'Asignar producto';
   $('#form-asignar').reset();
+  
+
+  $('#form-producto').required = true; 
 
   $('#row-producto-select').style.display = 'block';
+  
 
   $('#form-precio-venta-calc').value = '';
 
@@ -350,7 +351,7 @@ window.abrirEditarAsignacion = async (idPP) => {
     return;
   }
 
-  editandoId = idPP;
+editandoId = idPP;
   editandoMateria = null;
 
   const data = await apiFetch(`${API_PP}/detalle/${idPP}`);
@@ -360,10 +361,9 @@ window.abrirEditarAsignacion = async (idPP) => {
     return;
   }
 
-  $('#modal-asignar-titulo').textContent =
-    'Editar asignación';
-
+ $('#modal-asignar-titulo').textContent = 'Editar asignación';
   $('#row-producto-select').style.display = 'none';
+$('#form-producto').required = false; 
 
   $('#form-precio-compra').value = data.precio_compra;
   $('#form-dias').value = data.dias_entrega || '';
@@ -404,16 +404,13 @@ window.abrirEditarMateria = (
 ) => {
 
   editandoId = null;
+  editandoMateria = { id: idMateria, nombre };
 
-  editandoMateria = {
-    id: idMateria,
-    nombre
-  };
-
-  $('#modal-asignar-titulo').textContent =
-    `Editar costo: ${nombre}`;
-
+  $('#modal-asignar-titulo').textContent = `Editar costo: ${nombre}`;
   $('#row-producto-select').style.display = 'none';
+  
+  
+  $('#form-producto').required = false; 
 
   $('#form-precio-compra').value = costoActual;
 
