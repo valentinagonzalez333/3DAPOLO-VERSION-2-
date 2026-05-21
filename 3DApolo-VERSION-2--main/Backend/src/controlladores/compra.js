@@ -4,7 +4,6 @@ const ok = (res, data, status = 200) => res.status(status).json(data);
 const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
-cambiarEstado
 const listar = async (req, res) => {
   try {
     const {
