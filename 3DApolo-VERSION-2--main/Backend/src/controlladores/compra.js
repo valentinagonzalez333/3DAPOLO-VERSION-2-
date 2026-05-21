@@ -131,17 +131,17 @@ const crear = async (req, res) => {
 
     const id_compra = result.insertId;
 
-    for (const item of detalle) {
+   for (const item of detalle) {
   const idLimpio = parseInt(item.id_producto, 10);
 
-  // 1. Preguntamos rápido a la base de datos si este ID existe en la tabla productos
-  const [[existeProd]] = await conn.query(
-    `SELECT id_producto FROM productos WHERE id_producto = ?`,
+  // 1. Buscamos directamente en la tabla de materias primas primero
+  const [[esMateriaPrima]] = await conn.query(
+    `SELECT id_materia FROM materias_primas WHERE id_materia = ?`,
     [idLimpio]
   );
 
-  // 2. Si existe en productos, esMateria es false. Si NO existe, asumimos que es una materia prima
-  const esMateria = !existeProd;
+  // 2. Si se encuentra en materias primas, la variable será verdadera
+  const esMateria = !!esMateriaPrima;
 
   await conn.query(
     `INSERT INTO detalle_compra
@@ -149,7 +149,7 @@ const crear = async (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?)`,
     [
       id_compra,
-      esMateria ? null : idLimpio, // Si es materia, guarda NULL en producto y la FK no saltará
+      esMateria ? null : idLimpio, // Si es materia, enviamos NULL a id_producto (así la FK no salta jamás)
       esMateria ? idLimpio : null, // Si es materia, se guarda ordenadamente en id_materia
       +item.cantidad,
       +item.precio_unit,
