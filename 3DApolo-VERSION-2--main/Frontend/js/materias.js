@@ -91,8 +91,7 @@ function editar(id) {
   document.getElementById('f-costo').value = m.costo_prom || 0;
   document.getElementById('f-prov-display').value = m.proveedor || 'Sin proveedor asignado';
   document.getElementById('f-prov').value = m.id_proveedor || '';
-  document.getElementById('modal').classList.add('open');
-} document.getElementById('modal').classList.add('open');
+  document.getElementById('modal').classList.add('open');}
 
 
 async function eliminar(id) {
@@ -126,3 +125,5 @@ async function guardar(e) {
 
 document.getElementById('buscar').addEventListener('input', () => { pag = 1; cargar(); });
 cargarCatalogos(); cargar();
+
+
