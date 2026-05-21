@@ -10,6 +10,8 @@ mode?.addEventListener('change', () => {
   localStorage.setItem('mode', isDark ? 'dark' : 'light');
 });
 
+
+
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const API = '/api/compras';
 
@@ -233,11 +235,12 @@ $('#form-compra').addEventListener('submit', async (e) => {
     impuesto:     +impuesto.toFixed(2),
     total:        +(subtotal + impuesto).toFixed(2),
     notas:        $('#inp-notas').value || null,
-    detalle: detalle.map(d => ({
-      id_producto: d.id,
-      cantidad:    d.cantidad,
-      precio_unit: d.precio_unit,
-    })),
+   detalle: detalle.map(d => ({
+  id_producto: d.id,
+  cantidad:    d.cantidad,
+  precio_unit: d.precio_unit,
+  tipo_item:   d.tipo,   // 'producto' o 'materia'
+})),
   };
 
   const data = await apiFetch(API, { method: 'POST', body: JSON.stringify(payload) });

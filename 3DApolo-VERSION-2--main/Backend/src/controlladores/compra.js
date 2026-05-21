@@ -4,7 +4,7 @@ const ok = (res, data, status = 200) => res.status(status).json(data);
 const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
-
+cambiarEstado
 const listar = async (req, res) => {
   try {
     const {
@@ -242,7 +242,7 @@ const cambiarEstado = async (req, res) => {
           const [[mp]] = await conn.query(
             `SELECT id_materia, stock, costo_prom
              FROM materias_primas WHERE id_materia = ? AND estado = 1`,
-            [item.id_producto]
+            [item.id_materia]
           );
 
           if (mp) {
