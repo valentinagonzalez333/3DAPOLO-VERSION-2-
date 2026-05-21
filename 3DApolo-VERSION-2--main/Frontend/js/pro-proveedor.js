@@ -726,6 +726,23 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrarModalAsignar();
 });
 
+// Detectar cuando el usuario cambia la opción del producto al AGREGAR
+$('#form-producto').addEventListener('change', (e) => {
+  const valor = e.target.value;
+  
+  const pvGroup = $('#form-precio-venta-calc').closest('.form-group');
+  const margenGroup = $('#form-margen').closest('.form-group');
+
+  // Si el valor empieza con 'mat-' significa que seleccionaron una Materia Prima
+  if (valor.startsWith('mat-')) {
+    if (pvGroup) pvGroup.style.display = 'none';
+    if (margenGroup) margenGroup.style.display = 'none';
+  } else {
+    // Si es un producto ('prod-') o está vacío, volvemos a mostrar los campos de venta
+    if (pvGroup) pvGroup.style.display = 'block';
+    if (margenGroup) margenGroup.style.display = 'block';
+  }
+});
 // ─────────────────────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────────────────────
