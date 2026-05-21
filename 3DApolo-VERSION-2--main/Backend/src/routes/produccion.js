@@ -11,7 +11,6 @@ router.get('/catalogos', ctrl.catalogosProduccion);
 router.get('/ordenes', ctrl.listarOrdenes);
 router.post('/ordenes', ctrl.crearOrden);
 
-router.put('/ordenes/iniciar/:id', ctrl.iniciarOrden);
 
 router.put('/ordenes/:id', ctrl.actualizarOrden);
 router.delete('/ordenes/:id', soloAdmin, ctrl.eliminarOrden);
