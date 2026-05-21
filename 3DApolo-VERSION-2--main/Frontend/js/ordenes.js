@@ -163,15 +163,14 @@ async function eliminar(id) {
 
 async function guardar(e) {
   e.preventDefault();
-  const body = {
-    id_producto:  document.getElementById('f-prod').value,
-    cantidad:     document.getElementById('f-cant').value,
-    costo_mano:   document.getElementById('f-mano').value,
-    estado:       document.getElementById('f-est').value,
-    fecha_inicio: document.getElementById('f-fi').value,
-    fecha_fin:    document.getElementById('f-ff').value,
-    notas:        document.getElementById('f-notas').value,
-  };
+ const body = {
+  id_producto:  document.getElementById('f-prod').value,
+  cantidad:     document.getElementById('f-cant').value,
+  estado:       document.getElementById('f-est').value,
+  fecha_inicio: document.getElementById('f-fi').value,
+  fecha_fin:    document.getElementById('f-ff').value,
+  notas:        document.getElementById('f-notas').value,
+};
 
   const url    = editId ? `${API}/ordenes/${editId}` : `${API}/ordenes`;
   const method = editId ? 'PUT' : 'POST';

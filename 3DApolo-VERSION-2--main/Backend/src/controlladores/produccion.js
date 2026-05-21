@@ -1,6 +1,6 @@
 const db = require('../confg/db_conexion');
 
-const ok  = (res, data, status = 200) => res.status(status).json(data);
+const ok = (res, data, status = 200) => res.status(status).json(data);
 const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 const san = (v) => (typeof v === 'string' ? v.trim().replace(/[<>\"']/g, '') : v);
 
@@ -88,18 +88,17 @@ const crearOrden = async (req, res) => {
     }
 
     const costo_mat_unit = mats.reduce((s, m) => s + m.cantidad * m.costo_prom, 0);
-    const costo_mat      = costo_mat_unit * +cantidad;
-    const costo_total    = costo_mat + +costo_mano;
-    const costo_unit     = +cantidad > 0 ? costo_total / +cantidad : 0;
-
+    const costo_mat = costo_mat_unit * +cantidad;
+    const costo_total = costo_mat;
+    const costo_unit = +cantidad > 0 ? costo_mat_unit : 0;
     const [result] = await conn.query(
-      `INSERT INTO ordenes_produccion
-         (id_producto, id_usuario, cantidad, costo_mat, costo_mano, costo_total, costo_unit, notas, fecha_inicio, fecha_fin)
-       VALUES (?,?,?,?,?,?,?,?,?,?)`,
-      [+id_producto, req.usuario.id, +cantidad, costo_mat, +costo_mano,
-       costo_total, costo_unit, san(notas),
-       fecha_inicio || null, fecha_fin || null]
-    );
+  `INSERT INTO ordenes_produccion
+     (id_producto, id_usuario, cantidad, costo_mat, costo_total, costo_unit, notas, fecha_inicio, fecha_fin)
+   VALUES (?,?,?,?,?,?,?,?,?)`,
+  [+id_producto, req.usuario.id, +cantidad, costo_mat,
+   costo_total, costo_unit, san(notas),
+   fecha_inicio || null, fecha_fin || null]
+);
 
     await conn.commit(); conn.release();
     ok(res, { mensaje: 'Orden creada', id_orden: result.insertId }, 201);
@@ -176,8 +175,8 @@ const actualizarOrden = async (req, res) => {
          fecha_fin    = COALESCE(?, fecha_fin)
        WHERE id_orden = ?`,
       [estado || null, notas !== undefined ? san(notas) : null,
-       costo_mano !== undefined ? +costo_mano : null,
-       fecha_inicio || null, fecha_fin || null, id]
+      costo_mano !== undefined ? +costo_mano : null,
+      fecha_inicio || null, fecha_fin || null, id]
     );
 
     await conn.commit(); conn.release();
@@ -279,11 +278,11 @@ const actualizarMateria = async (req, res) => {
          id_proveedor = COALESCE(?, id_proveedor)
        WHERE id_materia = ?`,
       [nombre ? san(nombre) : null, id_unidad ? +id_unidad : null,
-       costo_prom !== undefined ? +costo_prom : null,
-       stock !== undefined ? +stock : null,
-       stock_min !== undefined ? +stock_min : null,
-       id_proveedor !== undefined ? (id_proveedor ? +id_proveedor : null) : undefined,
-       id]
+      costo_prom !== undefined ? +costo_prom : null,
+      stock !== undefined ? +stock : null,
+      stock_min !== undefined ? +stock_min : null,
+      id_proveedor !== undefined ? (id_proveedor ? +id_proveedor : null) : undefined,
+        id]
     );
     ok(res, { mensaje: 'Materia prima actualizada' });
   } catch (e) {
