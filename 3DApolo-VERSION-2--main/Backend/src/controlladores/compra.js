@@ -79,13 +79,13 @@ const obtener = async (req, res) => {
 
     const [detalle] = await db.query(
       `SELECT
-         d.*,
-         COALESCE(pr.nombre, mp.nombre) AS nombre_item,
-         CASE WHEN pr.id_producto IS NOT NULL THEN 'producto' ELSE 'materia' END AS tipo_item
-       FROM detalle_compra d
-       LEFT JOIN productos       pr ON pr.id_producto = d.id_producto
-       LEFT JOIN materias_primas mp ON mp.id_materia  = d.id_producto
-       WHERE d.id_compra = ?`,
+      d.*,
+      COALESCE(pr.nombre, mp.nombre) AS nombre_item,
+      CASE WHEN d.id_materia IS NOT NULL THEN 'materia' ELSE 'producto' END AS tipo_item
+   FROM detalle_compra d
+   LEFT JOIN productos      pr ON pr.id_producto = d.id_producto
+   LEFT JOIN materias_primas mp ON mp.id_materia  = d.id_materia
+   WHERE d.id_compra = ?`,
       [id]
     );
 
@@ -132,13 +132,17 @@ const crear = async (req, res) => {
     const id_compra = result.insertId;
 
     for (const item of detalle) {
+      // Validamos si el ítem que viene del frontend es una materia prima
+      const esMateria = item.tipo_item === 'materia';
+
       await conn.query(
         `INSERT INTO detalle_compra
-           (id_compra, id_producto, cantidad, precio_unit, subtotal)
-         VALUES (?, ?, ?, ?, ?)`,
+       (id_compra, id_producto, id_materia, cantidad, precio_unit, subtotal)
+     VALUES (?, ?, ?, ?, ?, ?)`,
         [
           id_compra,
-          +item.id_producto,
+          esMateria ? null : +item.id_producto,
+          esMateria ? +item.id_producto : null,
           +item.cantidad,
           +item.precio_unit,
           +(item.cantidad * item.precio_unit).toFixed(2),
