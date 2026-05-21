@@ -47,31 +47,29 @@ const listarPorProveedor = async (req, res) => {
     `;
 
     // MATERIAS
+const materiasQuery = `
+  SELECT
+    NULL AS id_prov_prod,
+    mp.id_proveedor,
+    mp.id_materia AS id_producto,
+    mp.costo_prom AS precio_compra,
+    NULL AS dias_entrega,
+    0 AS preferido,
 
-    const materiasQuery = `
-      SELECT
-        NULL AS id_prov_prod,
-        mp.id_proveedor,
-        mp.id_materia AS id_producto,
-        mp.costo_prom AS precio_compra,
-        NULL AS dias_entrega,
-        0 AS preferido,
-        mp.fecha_act,
+    mp.nombre,
+    0 AS precio_venta,
+    mp.stock,
+    mp.costo_prom,
 
-        mp.nombre,
-        0 AS precio_venta,
-        mp.stock,
-        mp.costo_prom,
+    'materia' AS tipo,
 
-        'materia' AS tipo,
+    'Materia prima' AS categoria
 
-        'Materia prima' AS categoria
+  FROM materias_primas mp
 
-      FROM materias_primas mp
-
-      WHERE mp.id_proveedor = ?
-      AND mp.estado = 1
-    `;
+  WHERE mp.id_proveedor = ?
+  AND mp.estado = 1
+`;
 
     const [productos] = await db.query(
       productosQuery,
