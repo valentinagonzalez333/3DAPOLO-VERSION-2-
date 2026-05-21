@@ -16,7 +16,7 @@ const API_PROD = '/api/productos';
 const API_PP   = '/api/proveedor-producto';
 
 let proveedorActivo = null;
-let editandoId = null;
+let editandoId      = null;
 let editandoMateria = null;
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
@@ -48,25 +48,27 @@ const apiFetch = async (url, opts = {}) => {
   return res.json();
 };
 
-// ─────────────────────────────────────────────────────────────
-// PROVEEDORES
-// ─────────────────────────────────────────────────────────────
-
+// ── Cargar proveedores ─────────────────────────────────────────────────────
 const cargarSelectProveedores = async () => {
+
   const data = await apiFetch(`${API_PROV}?limite=200`);
   if (!data) return;
 
   const sel = $('#select-proveedor');
 
   data.datos.forEach(({ id_proveedor, nombre }) => {
+
     sel.insertAdjacentHTML(
       'beforeend',
-      `<option value="${id_proveedor}">${nombre}</option>`
+      `<option value="${id_proveedor}">
+        ${nombre}
+      </option>`
     );
+
   });
 
   const params = new URLSearchParams(location.search);
-  const idUrl = params.get('id');
+  const idUrl  = params.get('id');
 
   if (idUrl) {
     sel.value = idUrl;
@@ -74,18 +76,82 @@ const cargarSelectProveedores = async () => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────
-// TABLA PRODUCTOS / MATERIAS
-// ─────────────────────────────────────────────────────────────
+// ── Cargar productos y materias primas ────────────────────────────────────
+const cargarSelectProductos = async () => {
 
+  const [productosData, materiasData] = await Promise.all([
+    apiFetch(`${API_PROD}?limite=500`),
+    apiFetch(`/api/produccion/materias?limite=500`)
+  ]);
+
+  const sel = $('#form-producto');
+
+  sel.innerHTML = '<option value="">— Seleccionar —</option>';
+
+  // ── PRODUCTOS ──
+  const productos = productosData?.datos || [];
+
+  if (productos.length) {
+
+    sel.insertAdjacentHTML(
+      'beforeend',
+      `<optgroup label="Productos"></optgroup>`
+    );
+
+    const group = sel.querySelector('optgroup[label="Productos"]');
+
+    productos.forEach(({ id_producto, nombre }) => {
+
+      group.insertAdjacentHTML(
+        'beforeend',
+        `<option value="producto-${id_producto}">
+          ${nombre}
+        </option>`
+      );
+
+    });
+  }
+
+  // ── MATERIAS PRIMAS ──
+  const materias = materiasData?.datos || [];
+
+  if (materias.length) {
+
+    sel.insertAdjacentHTML(
+      'beforeend',
+      `<optgroup label="Materias primas"></optgroup>`
+    );
+
+    const group = sel.querySelector('optgroup[label="Materias primas"]');
+
+    materias.forEach(({ id_materia, nombre }) => {
+
+      group.insertAdjacentHTML(
+        'beforeend',
+        `<option value="materia-${id_materia}">
+          ${nombre}
+        </option>`
+      );
+
+    });
+  }
+};
+
+// ── Cargar productos del proveedor ─────────────────────────────────────────
 const cargarProductosProveedor = async (idProveedor) => {
+
   const tbody = $('#tabla-body');
 
-  tbody.innerHTML =
-    `<tr><td colspan="8" class="cargando">Cargando...</td></tr>`;
+  tbody.innerHTML = `
+    <tr>
+      <td colspan="8" class="cargando">
+        Cargando...
+      </td>
+    </tr>
+  `;
 
   $('#seccion-tabla').style.display = 'block';
-  $('#estado-vacio').style.display = 'none';
+  $('#estado-vacio').style.display  = 'none';
 
   const data = await apiFetch(`${API_PP}/${idProveedor}`);
 
@@ -94,10 +160,15 @@ const cargarProductosProveedor = async (idProveedor) => {
   tbody.innerHTML = '';
 
   if (!data.length) {
-    tbody.innerHTML =
-      `<tr><td colspan="8" class="cargando">
-        Este proveedor no tiene productos asignados
-      </td></tr>`;
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="8" class="cargando">
+          Este proveedor no tiene productos asignados
+        </td>
+      </tr>
+    `;
+
     return;
   }
 
@@ -125,58 +196,60 @@ const cargarProductosProveedor = async (idProveedor) => {
 
     const preferidoCol = esMateria
       ? `<span class="muted">—</span>`
-      : (
-          p.preferido
-            ? `<span class="badge badge-verde">⭐ Sí</span>`
-            : `<span class="badge badge-amarillo">No</span>`
-        );
+      : (p.preferido
+          ? `<span class="badge badge-verde">⭐ Sí</span>`
+          : `<span class="badge badge-amarillo">No</span>`);
 
     const acciones = esMateria
+
       ? `
-        <button
-          class="btn-icono btn-editar"
+        <button class="btn-icono btn-editar"
           title="Editar costo"
           onclick="abrirEditarMateria(
             ${p.id_producto},
             '${p.nombre.replace(/'/g, "\\'")}',
             ${p.precio_compra}
-          )"
-        >✏️</button>
+          )">
+          ✏️
+        </button>
 
-        <button
-          class="btn-icono btn-elim"
+        <button class="btn-icono btn-elim"
           title="Desasociar"
           onclick="desasociarMateria(
             ${p.id_producto},
             '${p.nombre.replace(/'/g, "\\'")}'
-          )"
-        >🗑</button>
+          )">
+          🗑
+        </button>
       `
+
       : `
-        <button
-          class="btn-icono btn-editar"
+        <button class="btn-icono btn-editar"
           title="Editar"
           onclick="abrirEditarAsignacion(
             ${p.id_prov_prod},
             ${p.id_producto}
-          )"
-        >✏️</button>
+          )">
+          ✏️
+        </button>
 
-        <button
-          class="btn-icono btn-elim"
+        <button class="btn-icono btn-elim"
           title="Quitar"
           onclick="quitarProducto(
             ${p.id_prov_prod},
             '${p.nombre.replace(/'/g, "\\'")}'
-          )"
-        >🗑</button>
+          )">
+          🗑
+        </button>
       `;
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
         <td>
           <strong>${p.nombre}</strong><br>
-          <small class="muted">${p.categoria || '—'}</small>
+          <small class="muted">
+            ${p.categoria || '—'}
+          </small>
         </td>
 
         <td>${tipoBadge}</td>
@@ -200,27 +273,26 @@ const cargarProductosProveedor = async (idProveedor) => {
         </td>
       </tr>
     `);
+
   });
 };
 
-// ─────────────────────────────────────────────────────────────
-// CAMBIO PROVEEDOR
-// ─────────────────────────────────────────────────────────────
-
+// ── Cambio proveedor ───────────────────────────────────────────────────────
 $('#select-proveedor').addEventListener('change', async (e) => {
 
   const id = e.target.value;
 
   if (!id) {
+
     proveedorActivo = null;
 
-    $('#estado-vacio').style.display = 'block';
+    $('#estado-vacio').style.display  = 'block';
     $('#seccion-tabla').style.display = 'none';
 
     $('#nombre-proveedor-activo').textContent =
       '— Selecciona un proveedor';
 
-    $('#btn-asignar').disabled = true;
+    $('#btn-asignar').disabled  = true;
     $('#buscar-input').disabled = true;
 
     return;
@@ -232,65 +304,17 @@ $('#select-proveedor').addEventListener('change', async (e) => {
 
   $('#nombre-proveedor-activo').textContent = opt.text;
 
-  $('#btn-asignar').disabled = false;
+  $('#btn-asignar').disabled  = false;
   $('#buscar-input').disabled = false;
 
   await cargarProductosProveedor(id);
   await cargarSelectProductos();
 });
 
-// ─────────────────────────────────────────────────────────────
-// SELECT PRODUCTOS + MATERIAS
-// ─────────────────────────────────────────────────────────────
-
-const cargarSelectProductos = async () => {
-
-  const [productos, materias] = await Promise.all([
-    apiFetch(`${API_PROD}?limite=500&tipo=comprado`),
-    apiFetch(`/api/produccion/materias?limite=500`)
-  ]);
-
-  const sel = $('#form-producto');
-
-  sel.innerHTML =
-    '<option value="">— Seleccionar —</option>';
-
-  // PRODUCTOS
-
-  (productos?.datos || []).forEach(({ id_producto, nombre }) => {
-
-    sel.insertAdjacentHTML(
-      'beforeend',
-      `
-      <option value="prod-${id_producto}">
-        🛒 ${nombre}
-      </option>
-      `
-    );
-  });
-
-  // MATERIAS
-
-  (materias?.datos || []).forEach(({ id_materia, nombre }) => {
-
-    sel.insertAdjacentHTML(
-      'beforeend',
-      `
-      <option value="mat-${id_materia}">
-        🧱 ${nombre}
-      </option>
-      `
-    );
-  });
-};
-
-// ─────────────────────────────────────────────────────────────
-// MODAL
-// ─────────────────────────────────────────────────────────────
-
+// ── Modal ──────────────────────────────────────────────────────────────────
 const abrirModalAsignar = () => {
 
-  editandoId = null;
+  editandoId      = null;
   editandoMateria = null;
 
   $('#modal-asignar-titulo').textContent =
@@ -302,14 +326,13 @@ const abrirModalAsignar = () => {
 
   $('#form-precio-venta-calc').value = '';
 
-  const pvGroup =
-    $('#form-precio-venta-calc').closest('.form-group');
+  const pvGroup = $('#form-precio-venta-calc')
+    .closest('.form-group');
 
-  const prefGroup =
-    document.getElementById('form-preferido')
-      ?.closest('.form-group');
+  const prefGroup = document.getElementById('form-preferido')
+    ?.closest('.form-group');
 
-  if (pvGroup) pvGroup.style.display = 'block';
+  if (pvGroup)   pvGroup.style.display   = 'block';
   if (prefGroup) prefGroup.style.display = 'block';
 
   $('#modal-asignar').classList.add('visible');
@@ -321,89 +344,16 @@ const cerrarModalAsignar = () => {
 
   $('#form-asignar').reset();
 
-  editandoId = null;
+  editandoId      = null;
   editandoMateria = null;
-
-  $('#row-producto-select').style.display = 'block';
-
-  const pvGroup =
-    $('#form-precio-venta-calc').closest('.form-group');
-
-  const prefGroup =
-    document.getElementById('form-preferido')
-      ?.closest('.form-group');
-
-  if (pvGroup) pvGroup.style.display = 'block';
-  if (prefGroup) prefGroup.style.display = 'block';
 };
 
 window.cerrarModalAsignar = cerrarModalAsignar;
 
-// ─────────────────────────────────────────────────────────────
-// EDITAR ASIGNACIÓN
-// ─────────────────────────────────────────────────────────────
+// ── Editar materia ─────────────────────────────────────────────────────────
+window.abrirEditarMateria = (idMateria, nombre, costoActual) => {
 
-window.abrirEditarAsignacion = async (idPP) => {
-
-  if (!idPP || isNaN(idPP)) {
-    mostrarToast('ID inválido', 'error');
-    return;
-  }
-
-  editandoId = idPP;
-  editandoMateria = null;
-
-  const data = await apiFetch(`${API_PP}/detalle/${idPP}`);
-
-  if (!data || data.error) {
-    mostrarToast('Error al cargar', 'error');
-    return;
-  }
-
-  $('#modal-asignar-titulo').textContent =
-    'Editar asignación';
-
-  $('#row-producto-select').style.display = 'none';
-
-  $('#form-precio-compra').value = data.precio_compra;
-  $('#form-dias').value = data.dias_entrega || '';
-  $('#form-preferido').checked = !!data.preferido;
-
-  const pvGroup =
-    $('#form-precio-venta-calc').closest('.form-group');
-
-  const prefGroup =
-    document.getElementById('form-preferido')
-      ?.closest('.form-group');
-
-  if (pvGroup) pvGroup.style.display = 'block';
-  if (prefGroup) prefGroup.style.display = 'block';
-
-  if (data.precio_venta && data.precio_compra) {
-
-    const margen =
-      (((data.precio_venta - data.precio_compra)
-      / data.precio_venta) * 100).toFixed(1);
-
-    $('#form-margen').value = margen;
-  }
-
-  calcularPrecioVenta();
-
-  $('#modal-asignar').classList.add('visible');
-};
-
-// ─────────────────────────────────────────────────────────────
-// EDITAR MATERIA
-// ─────────────────────────────────────────────────────────────
-
-window.abrirEditarMateria = (
-  idMateria,
-  nombre,
-  costoActual
-) => {
-
-  editandoId = null;
+  editandoId      = null;
 
   editandoMateria = {
     id: idMateria,
@@ -417,36 +367,14 @@ window.abrirEditarMateria = (
 
   $('#form-precio-compra').value = costoActual;
 
-  $('#form-margen').value = '';
-  $('#form-precio-venta-calc').value = '';
-  $('#form-dias').value = '';
-
-  $('#form-preferido').checked = false;
-
-  const pvGroup =
-    $('#form-precio-venta-calc').closest('.form-group');
-
-  const prefGroup =
-    document.getElementById('form-preferido')
-      ?.closest('.form-group');
-
-  if (pvGroup) pvGroup.style.display = 'none';
-  if (prefGroup) prefGroup.style.display = 'none';
-
   $('#modal-asignar').classList.add('visible');
 };
 
-// ─────────────────────────────────────────────────────────────
-// CALCULAR
-// ─────────────────────────────────────────────────────────────
-
+// ── Calcular precio venta ──────────────────────────────────────────────────
 const calcularPrecioVenta = () => {
 
-  const compra =
-    +$('#form-precio-compra').value || 0;
-
-  const margen =
-    +$('#form-margen').value || 0;
+  const compra = +$('#form-precio-compra').value || 0;
+  const margen = +$('#form-margen').value || 0;
 
   if (compra > 0 && margen > 0 && margen < 100) {
 
@@ -465,10 +393,7 @@ $('#form-precio-compra')
 $('#form-margen')
   .addEventListener('input', calcularPrecioVenta);
 
-// ─────────────────────────────────────────────────────────────
-// GUARDAR
-// ─────────────────────────────────────────────────────────────
-
+// ── Submit ─────────────────────────────────────────────────────────────────
 $('#form-asignar').addEventListener('submit', async (e) => {
 
   e.preventDefault();
@@ -478,11 +403,9 @@ $('#form-asignar').addEventListener('submit', async (e) => {
   btn.disabled = true;
   btn.textContent = 'Guardando...';
 
-  const precioCompra =
-    +$('#form-precio-compra').value;
+  const precioCompra = +$('#form-precio-compra').value;
 
-  // EDITAR MATERIA
-
+  // ── EDITAR MATERIA ──
   if (editandoMateria) {
 
     const data = await apiFetch(
@@ -512,131 +435,96 @@ $('#form-asignar').addEventListener('submit', async (e) => {
     return;
   }
 
-  // PRODUCTO / MATERIA NUEVA
+  // ── NUEVO / EDITAR ──
+  const precioVenta = +$('#form-precio-venta-calc').value
+    || precioCompra;
 
-  const precioVenta =
-    +$('#form-precio-venta-calc').value || precioCompra;
+  const valorSelect = $('#form-producto').value;
 
-  const valorSelect =
-    $('#form-producto').value;
+  if (!valorSelect) {
 
-  let idProducto = null;
-  let idMateria = null;
+    mostrarToast(
+      'Selecciona un producto o materia prima',
+      'error'
+    );
 
-  if (valorSelect.startsWith('prod-')) {
-    idProducto =
-      +valorSelect.replace('prod-', '');
+    btn.disabled = false;
+    btn.textContent = 'Guardar';
+
+    return;
   }
 
-  if (valorSelect.startsWith('mat-')) {
-    idMateria =
-      +valorSelect.replace('mat-', '');
-  }
+  const [tipoItem, idItem] = valorSelect.split('-');
 
-  const diasEntrega =
-    $('#form-dias').value
-      ? +$('#form-dias').value
-      : null;
+  const diasEntrega = $('#form-dias').value
+    ? +$('#form-dias').value
+    : null;
 
-  const preferido =
-    $('#form-preferido').checked ? 1 : 0;
+  const preferido = $('#form-preferido').checked ? 1 : 0;
 
-  let url;
-  let method;
-  let bodyData;
+  let url, method, bodyData;
 
   if (editandoId) {
 
-    url = `${API_PP}/${editandoId}`;
-
+    url    = `${API_PP}/${editandoId}`;
     method = 'PUT';
 
     bodyData = {
       precio_compra: precioCompra,
       dias_entrega: diasEntrega,
-      preferido
+      preferido,
     };
 
   } else {
 
-    if (!idProducto && !idMateria) {
-
-      mostrarToast(
-        'Selecciona un producto o materia',
-        'error'
-      );
-
-      btn.disabled = false;
-      btn.textContent = 'Guardar';
-
-      return;
-    }
-
-    url = API_PP;
-
+    url    = API_PP;
     method = 'POST';
 
     bodyData = {
       id_proveedor: proveedorActivo,
-      id_producto: idProducto,
-      id_materia: idMateria,
       precio_compra: precioCompra,
       dias_entrega: diasEntrega,
       preferido,
     };
+
+    // ── PRODUCTO ──
+    if (tipoItem === 'producto') {
+      bodyData.id_producto = +idItem;
+    }
+
+    // ── MATERIA ──
+    if (tipoItem === 'materia') {
+      bodyData.id_materia = +idItem;
+    }
   }
 
   const data = await apiFetch(url, {
     method,
-    body: JSON.stringify(bodyData)
+    body: JSON.stringify(bodyData),
   });
 
   btn.disabled = false;
   btn.textContent = 'Guardar';
 
   if (data?.error) {
+
     mostrarToast(data.error, 'error');
+
     return;
   }
 
-  const idProdFinal = editandoId
-    ? (await apiFetch(`${API_PP}/detalle/${editandoId}`))
-        ?.id_producto
-    : idProducto;
-
-  if (precioVenta > 0 && idProdFinal) {
-
-    await apiFetch(`${API_PROD}/${idProdFinal}`, {
-      method: 'PUT',
-      body: JSON.stringify({
-        precio_venta: precioVenta,
-        costo_prom: precioCompra
-      }),
-    });
-  }
-
-  mostrarToast(data?.mensaje || 'Guardado', 'ok');
+  mostrarToast(
+    data?.mensaje || 'Guardado',
+    'ok'
+  );
 
   cerrarModalAsignar();
 
   cargarProductosProveedor(proveedorActivo);
 });
 
-// ─────────────────────────────────────────────────────────────
-// QUITAR
-// ─────────────────────────────────────────────────────────────
-
+// ── Eliminar ───────────────────────────────────────────────────────────────
 window.quitarProducto = async (idPP, nombre) => {
-
-  if (!idPP || isNaN(+idPP)) {
-
-    mostrarToast(
-      'No se puede quitar este item',
-      'error'
-    );
-
-    return;
-  }
 
   if (!confirm(`¿Quitar "${nombre}"?`)) return;
 
@@ -655,17 +543,11 @@ window.quitarProducto = async (idPP, nombre) => {
   cargarProductosProveedor(proveedorActivo);
 };
 
-// ─────────────────────────────────────────────────────────────
-// DESASOCIAR MATERIA
-// ─────────────────────────────────────────────────────────────
-
-window.desasociarMateria = async (
-  idMateria,
-  nombre
-) => {
+// ── Desasociar materia ─────────────────────────────────────────────────────
+window.desasociarMateria = async (idMateria, nombre) => {
 
   if (!confirm(
-    `¿Desasociar "${nombre}" del proveedor?`
+    `¿Desasociar "${nombre}" de este proveedor?`
   )) return;
 
   const data = await apiFetch(
@@ -689,10 +571,7 @@ window.desasociarMateria = async (
   cargarProductosProveedor(proveedorActivo);
 };
 
-// ─────────────────────────────────────────────────────────────
-// TOAST
-// ─────────────────────────────────────────────────────────────
-
+// ── Toast ──────────────────────────────────────────────────────────────────
 const mostrarToast = (msg, tipo = 'ok') => {
 
   const t = document.createElement('div');
@@ -703,25 +582,18 @@ const mostrarToast = (msg, tipo = 'ok') => {
 
   document.body.appendChild(t);
 
-  setTimeout(() => {
-    t.classList.add('visible');
-  }, 10);
+  setTimeout(() => t.classList.add('visible'), 10);
 
   setTimeout(() => {
 
     t.classList.remove('visible');
 
-    setTimeout(() => {
-      t.remove();
-    }, 400);
+    setTimeout(() => t.remove(), 400);
 
   }, 3000);
 };
 
-// ─────────────────────────────────────────────────────────────
-// EVENTOS
-// ─────────────────────────────────────────────────────────────
-
+// ── Eventos ────────────────────────────────────────────────────────────────
 $('#btn-asignar')
   .addEventListener('click', abrirModalAsignar);
 
@@ -729,8 +601,5 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrarModalAsignar();
 });
 
-// ─────────────────────────────────────────────────────────────
-// INIT
-// ─────────────────────────────────────────────────────────────
-
+// ── Init ───────────────────────────────────────────────────────────────────
 cargarSelectProveedores();
