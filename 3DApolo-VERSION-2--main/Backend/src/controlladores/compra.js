@@ -132,12 +132,16 @@ const crear = async (req, res) => {
     const id_compra = result.insertId;
 
     for (const item of detalle) {
-  // 1. Forzamos la detección: ¿Viene marcado como materia o el ID contiene 'mat'?
-  const idString = String(item.id_producto || '');
-  const esMateria = item.tipo_item === 'materia' || item.tipo === 'materia' || idString.startsWith('mat-');
+  const idLimpio = parseInt(item.id_producto, 10);
 
-  // 2. Limpiamos el ID quitándole letras si es que el frontend mandó "mat-20" o "prod-20"
-  const idLimpio = parseInt(idString.replace('mat-', '').replace('prod-', ''), 10);
+  // 1. Preguntamos rápido a la base de datos si este ID existe en la tabla productos
+  const [[existeProd]] = await conn.query(
+    `SELECT id_producto FROM productos WHERE id_producto = ?`,
+    [idLimpio]
+  );
+
+  // 2. Si existe en productos, esMateria es false. Si NO existe, asumimos que es una materia prima
+  const esMateria = !existeProd;
 
   await conn.query(
     `INSERT INTO detalle_compra
@@ -145,8 +149,8 @@ const crear = async (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?)`,
     [
       id_compra,
-      esMateria ? null : idLimpio, // Si es materia, id_producto se guarda como NULL
-      esMateria ? idLimpio : null, // Si es materia, se guarda en id_materia
+      esMateria ? null : idLimpio, // Si es materia, guarda NULL en producto y la FK no saltará
+      esMateria ? idLimpio : null, // Si es materia, se guarda ordenadamente en id_materia
       +item.cantidad,
       +item.precio_unit,
       +(item.cantidad * item.precio_unit).toFixed(2),
