@@ -132,23 +132,27 @@ const crear = async (req, res) => {
     const id_compra = result.insertId;
 
     for (const item of detalle) {
-      // Validamos si el ítem que viene del frontend es una materia prima
-      const esMateria = item.tipo_item === 'materia';
+  // 1. Forzamos la detección: ¿Viene marcado como materia o el ID contiene 'mat'?
+  const idString = String(item.id_producto || '');
+  const esMateria = item.tipo_item === 'materia' || item.tipo === 'materia' || idString.startsWith('mat-');
 
-      await conn.query(
-        `INSERT INTO detalle_compra
+  // 2. Limpiamos el ID quitándole letras si es que el frontend mandó "mat-20" o "prod-20"
+  const idLimpio = parseInt(idString.replace('mat-', '').replace('prod-', ''), 10);
+
+  await conn.query(
+    `INSERT INTO detalle_compra
        (id_compra, id_producto, id_materia, cantidad, precio_unit, subtotal)
      VALUES (?, ?, ?, ?, ?, ?)`,
-        [
-          id_compra,
-          esMateria ? null : +item.id_producto,
-          esMateria ? +item.id_producto : null,
-          +item.cantidad,
-          +item.precio_unit,
-          +(item.cantidad * item.precio_unit).toFixed(2),
-        ]
-      );
-    }
+    [
+      id_compra,
+      esMateria ? null : idLimpio, // Si es materia, id_producto se guarda como NULL
+      esMateria ? idLimpio : null, // Si es materia, se guarda en id_materia
+      +item.cantidad,
+      +item.precio_unit,
+      +(item.cantidad * item.precio_unit).toFixed(2),
+    ]
+  );
+}
 
     await conn.commit();
     conn.release();
