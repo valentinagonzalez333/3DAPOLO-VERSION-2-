@@ -129,18 +129,14 @@ const crear = async (req, res) => {
     );
 
     const id_compra = result.insertId;
-
-   for (const item of detalle) {
+// ==========================================
+// REEMPLAZA TU BUCLE FOR ACTUAL POR ESTE:
+// ==========================================
+for (const item of detalle) {
   const idLimpio = parseInt(item.id_producto, 10);
 
-  // 1. Buscamos directamente en la tabla de materias primas primero
-  const [[esMateriaPrima]] = await conn.query(
-    `SELECT id_materia FROM materias_primas WHERE id_materia = ?`,
-    [idLimpio]
-  );
-
-  // 2. Si se encuentra en materias primas, la variable será verdadera
-  const esMateria = !!esMateriaPrima;
+  // Evaluamos directamente el tipo de ítem enviado desde el cliente
+  const esMateria = item.tipo_item === 'materia';
 
   await conn.query(
     `INSERT INTO detalle_compra
@@ -148,8 +144,8 @@ const crear = async (req, res) => {
      VALUES (?, ?, ?, ?, ?, ?)`,
     [
       id_compra,
-      esMateria ? null : idLimpio, // Si es materia, enviamos NULL a id_producto (así la FK no salta jamás)
-      esMateria ? idLimpio : null, // Si es materia, se guarda ordenadamente en id_materia
+      esMateria ? null : idLimpio, // Si es materia va NULL, si es producto va el id
+      esMateria ? idLimpio : null, // Si es materia va el id, si es producto va NULL
       +item.cantidad,
       +item.precio_unit,
       +(item.cantidad * item.precio_unit).toFixed(2),

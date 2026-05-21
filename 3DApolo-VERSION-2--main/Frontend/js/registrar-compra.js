@@ -100,9 +100,9 @@ const renderDropdownProveedor = (items) => {
 
   lista.innerHTML = items.map(p => `
     <div class="item-row"
-      onclick="agregarDesdeProveedor(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_compra}, ${p.stock})">
+      onclick="agregarDesdeProveedor(${p.id_producto}, '${p.nombre.replace(/'/g, "\\'")}', ${p.precio_compra}, ${p.stock}, '${p.tipo || 'producto'}')"> 
       <span class="item-nombre">${p.nombre}</span>
-      <span class="item-tipo badge badge-azul">Producto</span>
+      <span class="item-tipo badge ${p.tipo === 'materia' ? 'badge-verde' : 'badge-azul'}">${p.tipo === 'materia' ? 'Materia Prima' : 'Producto'}</span>
       <span class="item-precio">$${(+p.precio_compra).toLocaleString('es-CO')}</span>
     </div>
   `).join('');
@@ -119,8 +119,8 @@ $('#buscar-item').addEventListener('focus', () => {
 });
 
 
-window.agregarDesdeProveedor = (id, nombre, precio, stock) => {
-  if (detalle.find(d => d.id === id)) {
+window.agregarDesdeProveedor = (id, nombre, precio, stock, tipo = 'producto') => {
+  if (detalle.find(d => d.id === id && d.tipo === tipo)) {
     mostrarToast(`"${nombre}" ya está en la lista`, 'error');
     return;
   }
@@ -128,7 +128,7 @@ window.agregarDesdeProveedor = (id, nombre, precio, stock) => {
     id,
     nombre,
     precio_unit: +precio,
-    tipo:  'producto',
+    tipo:  tipo, // 👈 Guardamos el tipo real proveniente de la base de datos
     stock: +stock,
     cantidad: 1,
   });
