@@ -1,7 +1,7 @@
 const db = require('../confg/db_conexion');
 
-const ok       = (res, data, status = 200) => res.status(status).json(data);
-const err      = (res, msg, status = 500)  => res.status(status).json({ error: msg });
+const ok = (res, data, status = 200) => res.status(status).json(data);
+const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
 
@@ -17,9 +17,9 @@ const listar = async (req, res) => {
     let where = `WHERE 1=1`;
 
     if (proveedor) { where += ` AND c.id_proveedor = ?`; params.push(+proveedor); }
-    if (estado)    { where += ` AND c.estado = ?`;        params.push(estado); }
-    if (fecha_ini) { where += ` AND c.fecha >= ?`;        params.push(fecha_ini); }
-    if (fecha_fin) { where += ` AND c.fecha <= ?`;        params.push(fecha_fin); }
+    if (estado) { where += ` AND c.estado = ?`; params.push(estado); }
+    if (fecha_ini) { where += ` AND c.fecha >= ?`; params.push(fecha_ini); }
+    if (fecha_fin) { where += ` AND c.fecha <= ?`; params.push(fecha_fin); }
     if (buscar) {
       where += ` AND (p.nombre LIKE ? OR c.notas LIKE ?)`;
       const b = `%${sanitize(buscar)}%`;
@@ -108,8 +108,8 @@ const crear = async (req, res) => {
       subtotal,
       impuesto = 0,
       total,
-      notas    = null,
-      detalle  = [],
+      notas = null,
+      detalle = [],
     } = req.body;
 
 
@@ -126,7 +126,7 @@ const crear = async (req, res) => {
          (id_proveedor, id_usuario, fecha, subtotal, impuesto, total, estado, notas)
        VALUES (?, ?, ?, ?, ?, ?, 'pendiente', ?)`,
       [+id_proveedor, id_usuario, fecha, +subtotal, +impuesto, +total,
-       notas ? sanitize(notas) : null]
+      notas ? sanitize(notas) : null]
     );
 
     const id_compra = result.insertId;
@@ -188,14 +188,14 @@ const cambiarEstado = async (req, res) => {
       `UPDATE compras SET estado = ? WHERE id_compra = ?`, [estado, id]
     );
 
-   
+
     if (estado === 'recibida') {
       const [detalle] = await conn.query(
         `SELECT * FROM detalle_compra WHERE id_compra = ?`, [id]
       );
 
       for (const item of detalle) {
-        
+
         const [[prod]] = await conn.query(
           `SELECT id_producto, stock, costo_prom
            FROM productos WHERE id_producto = ? AND estado = 1`,
@@ -203,9 +203,9 @@ const cambiarEstado = async (req, res) => {
         );
 
         if (prod) {
-          const stockNuevo    = +prod.stock + +item.cantidad;
-          const costoPromAnt  = +prod.costo_prom || 0;
-          const costoPromNew  = stockNuevo > 0
+          const stockNuevo = +prod.stock + +item.cantidad;
+          const costoPromAnt = +prod.costo_prom || 0;
+          const costoPromNew = stockNuevo > 0
             ? ((costoPromAnt * +prod.stock) + (+item.precio_unit * +item.cantidad)) / stockNuevo
             : +item.precio_unit;
 
@@ -219,14 +219,14 @@ const cambiarEstado = async (req, res) => {
             [costoPromAnt, +costoPromNew.toFixed(4), item.id_det_compra]
           );
 
-          
+
           await conn.query(
-            `INSERT INTO movimientos (id_producto, id_usuario, tipo, cantidad, costo_unit)
-             VALUES (?, ?, 'compra', ?, ?)`,
-            [prod.id_producto, req.usuario?.id || null, +item.cantidad, +item.precio_unit]
+            `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+   VALUES (?, ?, 'compra', 'producto', ?, ?, ?)`,
+            [prod.id_producto, req.usuario?.id || null, id, +item.cantidad, +item.precio_unit]
           );
         } else {
-          
+
           const [[mp]] = await conn.query(
             `SELECT id_materia, stock, costo_prom
              FROM materias_primas WHERE id_materia = ? AND estado = 1`,
@@ -234,7 +234,7 @@ const cambiarEstado = async (req, res) => {
           );
 
           if (mp) {
-            const stockNuevo   = +mp.stock + +item.cantidad;
+            const stockNuevo = +mp.stock + +item.cantidad;
             const costoPromAnt = +mp.costo_prom || 0;
             const costoPromNew = stockNuevo > 0
               ? ((costoPromAnt * +mp.stock) + (+item.precio_unit * +item.cantidad)) / stockNuevo
@@ -248,6 +248,11 @@ const cambiarEstado = async (req, res) => {
               `UPDATE detalle_compra SET costo_prom_ant = ?, costo_prom_new = ?
                WHERE id_det_compra = ?`,
               [costoPromAnt, +costoPromNew.toFixed(4), item.id_det_compra]
+            );
+            await conn.query(
+              `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+   VALUES (?, ?, 'compra', 'materia', ?, ?, ?)`,
+              [mp.id_materia, req.usuario?.id || null, id, +item.cantidad, +item.precio_unit]
             );
           }
         }
@@ -275,21 +280,22 @@ const buscarItems = async (req, res) => {
 
     const [productos] = await db.query(
       `SELECT id_producto AS id, nombre, costo_prom AS precio, 'producto' AS tipo, stock
-       FROM productos
-       WHERE nombre LIKE ? AND estado = 1
-       LIMIT 15`,
+   FROM productos
+   WHERE nombre LIKE ? AND estado = 1 AND tipo = 'comprado'
+   LIMIT 15`,
       [b]
     );
 
     const materiasQuery = id_proveedor
       ? `SELECT id_materia AS id, nombre, costo_prom AS precio, 'materia' AS tipo, stock
-         FROM materias_primas
-         WHERE nombre LIKE ? AND estado = 1 AND id_proveedor = ?
-         LIMIT 15`
+     FROM materias_primas
+     WHERE nombre LIKE ? AND estado = 1 
+     AND (id_proveedor = ? OR id_proveedor IS NULL)
+     LIMIT 15`
       : `SELECT id_materia AS id, nombre, costo_prom AS precio, 'materia' AS tipo, stock
-         FROM materias_primas
-         WHERE nombre LIKE ? AND estado = 1
-         LIMIT 15`;
+     FROM materias_primas
+     WHERE nombre LIKE ? AND estado = 1
+     LIMIT 15`;
 
     const materiasParams = id_proveedor ? [b, +id_proveedor] : [b];
     const [materias] = await db.query(materiasQuery, materiasParams);
@@ -306,11 +312,11 @@ const resumen = async (req, res) => {
   try {
     const { fecha_ini = '', fecha_fin = '', id_proveedor = '' } = req.query;
     const params = [];
-    let where = `WHERE c.estado = 'recibida'`;  
+    let where = `WHERE c.estado = 'recibida'`;
 
-    if (fecha_ini)    { where += ` AND c.fecha >= ?`;        params.push(fecha_ini); }
-    if (fecha_fin)    { where += ` AND c.fecha <= ?`;        params.push(fecha_fin); }
-    if (id_proveedor) { where += ` AND c.id_proveedor = ?`;  params.push(+id_proveedor); }
+    if (fecha_ini) { where += ` AND c.fecha >= ?`; params.push(fecha_ini); }
+    if (fecha_fin) { where += ` AND c.fecha <= ?`; params.push(fecha_fin); }
+    if (id_proveedor) { where += ` AND c.id_proveedor = ?`; params.push(+id_proveedor); }
 
     const [[stats]] = await db.query(
       `SELECT

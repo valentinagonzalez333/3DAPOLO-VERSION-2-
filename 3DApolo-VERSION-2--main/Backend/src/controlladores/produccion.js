@@ -92,13 +92,13 @@ const crearOrden = async (req, res) => {
     const costo_total = costo_mat;
     const costo_unit = +cantidad > 0 ? costo_mat_unit : 0;
     const [result] = await conn.query(
-  `INSERT INTO ordenes_produccion
+      `INSERT INTO ordenes_produccion
      (id_producto, id_usuario, cantidad, costo_mat, costo_total, costo_unit, notas, fecha_inicio, fecha_fin)
    VALUES (?,?,?,?,?,?,?,?,?)`,
-  [+id_producto, req.usuario.id, +cantidad, costo_mat,
-   costo_total, costo_unit, san(notas),
-   fecha_inicio || null, fecha_fin || null]
-);
+      [+id_producto, req.usuario.id, +cantidad, costo_mat,
+        costo_total, costo_unit, san(notas),
+      fecha_inicio || null, fecha_fin || null]
+    );
 
     await conn.commit(); conn.release();
     ok(res, { mensaje: 'Orden creada', id_orden: result.insertId }, 201);
@@ -161,10 +161,25 @@ const actualizarOrden = async (req, res) => {
         `UPDATE productos SET stock = stock + ? WHERE id_producto = ?`,
         [orden.cantidad, orden.id_producto]
       );
+      // Movimiento del producto fabricado
+      await conn.query(
+        `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+   VALUES (?, ?, 'produccion', 'producto', ?, ?, ?)`,
+        [orden.id_producto, req.usuario?.id || null, id, orden.cantidad, orden.costo_unit]
+      );
+
+      // Movimientos de materias consumidas
+      for (const m of mats) {
+        await conn.query(
+          `INSERT INTO movimientos (id_producto, id_usuario, tipo, tipo_item, id_ref, cantidad, costo_unit)
+     VALUES (?, ?, 'produccion', 'materia', ?, ?, ?)`,
+          [m.id_materia, req.usuario?.id || null, id, -(m.cantidad * orden.cantidad), m.costo_prom]
+        );
+      }
+
     }
 
-    // Si pasa a CANCELADA y venía de completada — revertir (opcional, solo si lo necesitan)
-    // Por ahora no revertimos para evitar inconsistencias
+
 
     await conn.query(
       `UPDATE ordenes_produccion SET
