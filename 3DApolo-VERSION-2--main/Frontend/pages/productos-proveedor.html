@@ -78,7 +78,7 @@
             <ul class="submenu">
               <li><a href="/nueva-venta"><i data-lucide="plus-circle"></i>Nueva venta</a></li>
               <li><a href="/historial-ventas"><i data-lucide="history"></i>Historial</a></li>
-             <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
+              <li><a href="/devoluciones"><i data-lucide="refresh-ccw"></i>Devoluciones</a></li>
               <li><a href="/mayoreo"><i data-lucide="users"></i>Clientes mayoreo</a></li>
             </ul>
           </li>
@@ -171,6 +171,7 @@
             <thead>
               <tr>
                 <th>Producto</th>
+                <th>Tipo</th>
                 <th>Precio compra</th>
                 <th>Margen (%)</th>
                 <th>Precio venta</th>
@@ -249,12 +250,12 @@
       document.body.classList.toggle('dark-mode', e.target.checked);
     });
     function cerrarSesion() {
-  if (!confirm('¿Cerrar sesión?')) return;
-  localStorage.removeItem('token');
-  localStorage.removeItem('usuario');
-  fetch('/api/auth/logout', { method: 'POST' })
-    .finally(() => window.location.replace('/login'));
-}
+      if (!confirm('¿Cerrar sesión?')) return;
+      localStorage.removeItem('token');
+      localStorage.removeItem('usuario');
+      fetch('/api/auth/logout', { method: 'POST' })
+        .finally(() => window.location.replace('/login'));
+    }
   </script>
   <script src="/js/pro-proveedor.js"></script>
 </body>
