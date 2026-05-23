@@ -4,6 +4,7 @@ const ok       = (res, data, status = 200) => res.status(status).json(data);
 const err      = (res, msg, status = 500)  => res.status(status).json({ error: msg });
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
+
 const listar = async (req, res) => {
   try {
     const { buscar = '', pagina = 1, limite = 20 } = req.query;
@@ -26,11 +27,9 @@ const listar = async (req, res) => {
       `SELECT
          p.id_proveedor, p.nombre, p.nit, p.telefono,
          p.correo, p.ciudad, p.direccion, p.fecha_reg,
-         COUNT(DISTINCT pp.id_prov_prod) +
-         COUNT(DISTINCT mp.id_materia)   AS total_productos
+         COUNT(pp.id_prov_prod) AS total_productos
        FROM proveedores p
        LEFT JOIN proveedor_producto pp ON pp.id_proveedor = p.id_proveedor
-       LEFT JOIN materias_primas    mp ON mp.id_proveedor = p.id_proveedor AND mp.estado = 1
        ${where}
        GROUP BY p.id_proveedor
        ORDER BY p.nombre ASC
