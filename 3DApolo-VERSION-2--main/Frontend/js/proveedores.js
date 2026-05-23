@@ -70,9 +70,11 @@ const cargarProveedores = async () => {
         <td>${p.ciudad || '—'}</td>
         <td>${p.correo || '—'}</td>
         <td>
-          <a href="/productos-proveedor?id=${p.id_proveedor}" class="btn-icono btn-ver" title="Ver productos">
-            📦 ${p.total_productos ?? 0}
-          </a>
+        <td>
+        <a href="/productos-proveedor?id=${p.id_proveedor}" class="btn-icono btn-ver" title="Ver productos">
+        📦 ${p.total_productos ?? 0} prod.
+        </a>
+        </td>
         </td>
         <td class="acciones">
           <button class="btn-icono btn-ver"    title="Ver"     onclick="verProveedor(${p.id_proveedor})">👁</button>
@@ -130,15 +132,15 @@ $('#form-proveedor').addEventListener('submit', async (e) => {
   btn.textContent = 'Guardando...';
 
   const body = {
-    nombre:    $('#form-nombre').value,
-    nit:       $('#form-nit').value,
-    telefono:  $('#form-telefono').value,
-    correo:    $('#form-correo').value,
-    ciudad:    $('#form-ciudad').value,
+    nombre: $('#form-nombre').value,
+    nit: $('#form-nit').value,
+    telefono: $('#form-telefono').value,
+    correo: $('#form-correo').value,
+    ciudad: $('#form-ciudad').value,
     direccion: $('#form-direccion').value,
   };
 
-  const url    = estado.editandoId ? `${API}/${estado.editandoId}` : API;
+  const url = estado.editandoId ? `${API}/${estado.editandoId}` : API;
   const method = estado.editandoId ? 'PUT' : 'POST';
 
   const data = await apiFetch(url, { method, body: JSON.stringify(body) });
@@ -158,11 +160,11 @@ window.abrirEditar = async (id) => {
   if (!data || data.error) return mostrarToast('Error al cargar proveedor', 'error');
 
   abrirModal('Editar proveedor');
-  $('#form-nombre').value    = data.nombre;
-  $('#form-nit').value       = data.nit || '';
-  $('#form-telefono').value  = data.telefono || '';
-  $('#form-correo').value    = data.correo || '';
-  $('#form-ciudad').value    = data.ciudad || '';
+  $('#form-nombre').value = data.nombre;
+  $('#form-nit').value = data.nit || '';
+  $('#form-telefono').value = data.telefono || '';
+  $('#form-correo').value = data.correo || '';
+  $('#form-ciudad').value = data.ciudad || '';
   $('#form-direccion').value = data.direccion || '';
 };
 

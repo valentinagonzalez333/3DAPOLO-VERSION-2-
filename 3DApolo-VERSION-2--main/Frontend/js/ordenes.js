@@ -1,191 +1,287 @@
-lucide.createIcons();
-document.getElementById('btn').addEventListener('click', () =>
-  document.getElementById('menu').classList.toggle('activo'));
-document.getElementById('btn_modo').addEventListener('change', function () {
-  document.body.classList.toggle('dark-mode', this.checked);
-});
+const $ = id => document.getElementById(id);
 
-function cerrarSesion() {
-  if (!confirm('¿Cerrar sesión?')) return;
-  localStorage.removeItem('token');
-  localStorage.removeItem('usuario');
-  fetch('/api/auth/logout', { method: 'POST' })
-    .finally(() => window.location.replace('/login'));
-}
-
-function toast(msg, tipo = 'ok') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'show ' + tipo;
-  setTimeout(() => t.className = '', 3100);
-}
-
-function badge(e) {
-  const m = {
-    pendiente:   ['badge-naranja', 'Pendiente'],
-    en_proceso:  ['badge-azul',    'En proceso'],
-    completada:  ['badge-verde',   'Completada'],
-    cancelada:   ['badge-rojo',    'Cancelada'],
-  };
-  const [c, l] = m[e] || ['badge-gris', e];
-  return `<span class="badge ${c}">${l}</span>`;
-}
-
-const API = '/api/produccion';
-let datos = [], pag = 1, totalPags = 1, editId = null;
-
-async function cargarCatalogos() {
-  const d = await apiFetch(API + '/catalogos');
-  const sel = document.getElementById('f-prod');
-  (d.productos || []).forEach(p => {
-    const o = document.createElement('option');
-    o.value = p.id_producto; o.textContent = p.nombre;
-    sel.appendChild(o);
+const apiFetch = async (url, opts = {}) => {
+  const token = localStorage.getItem('token') || '';
+  const res = await fetch(url, {
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...(opts.headers || {}),
+    },
   });
-}
-
-async function cargar() {
-  const b = document.getElementById('buscar').value;
-  const e = document.getElementById('f-estado').value;
-  const d = await apiFetch(`${API}/ordenes?buscar=${encodeURIComponent(b)}&estado=${e}&pagina=${pag}`);
-  datos = d.datos || []; totalPags = d.paginacion?.paginas || 1;
-
-  const total     = d.paginacion?.total || 0;
-  const proceso   = datos.filter(x => x.estado === 'en_proceso').length;
-  const comp      = datos.filter(x => x.estado === 'completada').length;
-  const pend      = datos.filter(x => x.estado === 'pendiente').length;
-
-  document.getElementById('ci-total').textContent   = total;
-  document.getElementById('ci-proceso').textContent = proceso;
-  document.getElementById('ci-comp').textContent    = comp;
-  document.getElementById('ci-pend').textContent    = pend;
-
-  renderTabla(); renderPag();
-}
-
-function renderTabla() {
-  const tb = document.getElementById('tbody');
-  if (!datos.length) {
-    tb.innerHTML = '<tr><td colspan="8" class="tbl-empty">Sin órdenes registradas</td></tr>';
-    return;
-  }
-
-  tb.innerHTML = datos.map(o => {
-    const completable = ['pendiente', 'en_proceso'].includes(o.estado);
-    const cancelable  = ['pendiente', 'en_proceso'].includes(o.estado);
-    const eliminable  = o.estado !== 'completada';
-
-    return `
-      <tr>
-        <td><strong>#${o.id_orden}</strong></td>
-        <td>${o.producto || '—'}</td>
-        <td>${o.cantidad}</td>
-        <td>$${Number(o.costo_total || 0).toLocaleString('es-CO')}</td>
-        <td>${badge(o.estado)}</td>
-        <td>${o.fecha_inicio ? o.fecha_inicio.slice(0, 10) : '—'}</td>
-        <td>${o.fecha_fin    ? o.fecha_fin.slice(0, 10)    : '—'}</td>
-        <td>
-          <div class="acciones">
-            ${completable ? `<button class="btn-acc" title="Completar" onclick="cambiarEstado(${o.id_orden},'completada')"><i data-lucide="check-circle"></i></button>` : ''}
-            ${cancelable  ? `<button class="btn-acc rojo" title="Cancelar" onclick="cambiarEstado(${o.id_orden},'cancelada')"><i data-lucide="x-circle"></i></button>` : ''}
-            <button class="btn-acc" title="Editar" onclick="editar(${o.id_orden})"><i data-lucide="pencil"></i></button>
-            ${eliminable  ? `<button class="btn-acc rojo" title="Eliminar" onclick="eliminar(${o.id_orden})"><i data-lucide="trash-2"></i></button>` : ''}
-          </div>
-        </td>
-      </tr>`;
-  }).join('');
-
-  lucide.createIcons();
-}
-
-function renderPag() {
-  const c = document.getElementById('pag');
-  if (totalPags <= 1) { c.innerHTML = ''; return; }
-  c.innerHTML = Array.from({ length: totalPags }, (_, i) =>
-    `<button class="${i + 1 === pag ? 'activa' : ''}" onclick="irPag(${i + 1})">${i + 1}</button>`
-  ).join('');
-}
-
-function irPag(n) { pag = n; cargar(); }
-
-function abrirModal() {
-  editId = null;
-  document.getElementById('m-titulo').textContent = 'Nueva orden de producción';
-  document.getElementById('form').reset();
-  document.getElementById('modal').classList.add('open');
-}
-
-function cerrar() { document.getElementById('modal').classList.remove('open'); }
-
-function editar(id) {
-  const o = datos.find(x => x.id_orden === id);
-  if (!o) return;
-
-  if (['completada', 'cancelada'].includes(o.estado)) {
-    toast('Esta orden ya no se puede editar', 'err');
-    return;
-  }
-
-  editId = id;
-  document.getElementById('m-titulo').textContent = 'Editar orden #' + id;
-  document.getElementById('f-prod').value  = o.id_producto || '';
-  document.getElementById('f-cant').value  = o.cantidad;
-  document.getElementById('f-mano').value  = o.costo_mano || 0;
-  document.getElementById('f-est').value   = o.estado;
-  document.getElementById('f-fi').value    = o.fecha_inicio ? o.fecha_inicio.slice(0, 10) : '';
-  document.getElementById('f-ff').value    = o.fecha_fin    ? o.fecha_fin.slice(0, 10)    : '';
-  document.getElementById('f-notas').value = o.notas || '';
-  document.getElementById('modal').classList.add('open');
-}
-
-async function cambiarEstado(id, nuevoEstado) {
-  const labels = { completada: 'completar', cancelada: 'cancelar' };
-  if (!confirm(`¿Deseas ${labels[nuevoEstado]} la orden #${id}?${nuevoEstado === 'completada' ? '\n\nEsto descontará las materias primas y sumará stock al producto.' : ''}`)) return;
-
-  const d = await apiFetch(`${API}/ordenes/${id}`, {
-    method: 'PUT',
-    body: JSON.stringify({ estado: nuevoEstado }),
-  });
-
-  if (!d?.error) {
-    toast(d.mensaje || 'Estado actualizado');
-    cargar();
-  } else {
-    toast(d.error || 'Error al cambiar estado', 'err');
-  }
-}
-
-async function eliminar(id) {
-  if (!confirm('¿Eliminar esta orden?')) return;
-  const d = await apiFetch(API + '/ordenes/' + id, { method: 'DELETE' });
-  if (!d?.error) { toast('Orden eliminada'); cargar(); }
-  else toast(d.error || 'Error', 'err');
-}
-
-async function guardar(e) {
-  e.preventDefault();
- const body = {
-  id_producto:  document.getElementById('f-prod').value,
-  cantidad:     document.getElementById('f-cant').value,
-  estado:       document.getElementById('f-est').value,
-  fecha_inicio: document.getElementById('f-fi').value,
-  fecha_fin:    document.getElementById('f-ff').value,
-  notas:        document.getElementById('f-notas').value,
+  if (res.status === 401) { window.location.href = '/login'; return null; }
+  return res.json();
 };
 
-  const url    = editId ? `${API}/ordenes/${editId}` : `${API}/ordenes`;
-  const method = editId ? 'PUT' : 'POST';
-  const d = await apiFetch(url, { method, body: JSON.stringify(body) });
+const fmt = (n) =>
+  Number(n || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-  if (!d?.error) {
-    toast(editId ? 'Orden actualizada' : 'Orden creada');
-    cerrar(); cargar();
-  } else {
-    toast(d.error || 'Error al guardar', 'err');
+const ESTADOS = {
+  pendiente:  { label: 'Pendiente',  cls: 'badge-amarillo' },
+  en_proceso: { label: 'En proceso', cls: 'badge-azul'     },
+  completada: { label: 'Completada', cls: 'badge-verde'    },
+  cancelada:  { label: 'Cancelada',  cls: 'badge-rojo'     },
+};
+
+let pag     = { pagina: 1, limite: 20, buscar: '', estado: '' };
+let editId  = null;
+
+
+const cargarCatalogos = async () => {
+  const data = await apiFetch('/api/produccion/catalogos');
+  if (!data) return;
+  const sel = $('f-prod');
+  data.productos.forEach(p => {
+    sel.insertAdjacentHTML('beforeend',
+      `<option value="${p.id_producto}">${p.nombre}</option>`
+    );
+  });
+};
+
+
+const cargarOrdenes = async () => {
+  const tbody = $('tbody');
+  tbody.innerHTML = `<tr><td colspan="8" class="tbl-empty">Cargando...</td></tr>`;
+
+  const params = new URLSearchParams({
+    pagina: pag.pagina,
+    limite: pag.limite,
+    buscar: pag.buscar,
+    estado: pag.estado,
+  });
+
+  const data = await apiFetch(`/api/produccion/ordenes?${params}`);
+  if (!data) return;
+
+  
+  const tots = data.datos;
+  $('ci-total').textContent   = data.paginacion.total;
+  $('ci-proceso').textContent = tots.filter(o => o.estado === 'en_proceso').length;
+  $('ci-comp').textContent    = tots.filter(o => o.estado === 'completada').length;
+  $('ci-pend').textContent    = tots.filter(o => o.estado === 'pendiente').length;
+
+  tbody.innerHTML = '';
+
+  if (!data.datos.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="tbl-empty">Sin órdenes</td></tr>`;
+    renderPag(data.paginacion);
+    return;
   }
-}
 
-document.getElementById('buscar').addEventListener('input', () => { pag = 1; cargar(); });
-document.getElementById('f-estado').addEventListener('change', () => { pag = 1; cargar(); });
+  data.datos.forEach(o => {
+    const est     = ESTADOS[o.estado] || { label: o.estado, cls: '' };
+    const fechaIni = o.fecha_inicio ? new Date(o.fecha_inicio).toLocaleDateString('es-CO') : '—';
+    const fechaFin = o.fecha_fin    ? new Date(o.fecha_fin).toLocaleDateString('es-CO')    : '—';
+
+    const puedeEditar    = o.estado !== 'completada' && o.estado !== 'cancelada';
+    const puedeEliminar  = o.estado === 'pendiente';
+
+    tbody.insertAdjacentHTML('beforeend', `
+      <tr>
+        <td>#${o.id_orden}</td>
+        <td><strong>${o.producto}</strong></td>
+        <td>${o.cantidad}</td>
+        <td>${fmt(o.costo_total)}</td>
+        <td><span class="badge ${est.cls}">${est.label}</span></td>
+        <td>${fechaIni}</td>
+        <td>${fechaFin}</td>
+        <td>
+          ${puedeEditar ? `
+            <button class="btn-icon" title="Editar"
+              onclick='abrirEditar(${JSON.stringify(o)})'>✏️</button>
+          ` : ''}
+          <button class="btn-icon" title="Ver detalle"
+            onclick="verDetalle(${o.id_orden})">👁</button>
+          ${puedeEliminar ? `
+            <button class="btn-icon btn-del" title="Eliminar"
+              onclick="eliminar(${o.id_orden})">🗑</button>
+          ` : ''}
+        </td>
+      </tr>
+    `);
+  });
+
+  renderPag(data.paginacion);
+};
+
+
+const renderPag = ({ pagina, paginas }) => {
+  const el = $('pag');
+  el.innerHTML = '';
+  if (paginas <= 1) return;
+
+  const btn = (label, pg, dis = false) =>
+    `<button class="btn-pag${pg === pagina ? ' activo' : ''}" ${dis ? 'disabled' : ''}
+      onclick="cambiarPag(${pg})">${label}</button>`;
+
+  el.insertAdjacentHTML('beforeend', btn('‹', pagina - 1, pagina === 1));
+  for (let i = 1; i <= paginas; i++) {
+    el.insertAdjacentHTML('beforeend', btn(i, i));
+  }
+  el.insertAdjacentHTML('beforeend', btn('›', pagina + 1, pagina === paginas));
+};
+
+window.cambiarPag = (p) => { pag.pagina = p; cargarOrdenes(); };
+
+
+window.abrirModal = () => {
+  editId = null;
+  $('m-titulo').textContent = 'Nueva orden de producción';
+  $('form').reset();
+  $('f-est').value = 'pendiente';
+  $('modal').classList.add('visible');
+};
+
+
+window.abrirEditar = (o) => {
+  editId = o.id_orden;
+  $('m-titulo').textContent = `Editar orden #${o.id_orden}`;
+
+  
+  $('f-prod').value  = o.id_producto;
+  $('f-cant').value  = o.cantidad;
+  $('f-est').value   = o.estado;
+  $('f-fi').value    = o.fecha_inicio ? o.fecha_inicio.split('T')[0] : '';
+  $('f-ff').value    = o.fecha_fin    ? o.fecha_fin.split('T')[0]    : '';
+  $('f-notas').value = o.notas || '';
+
+  
+  if (o.estado !== 'completada') {
+   
+    let aviso = document.getElementById('aviso-completar-inline');
+    if (!aviso) {
+      aviso = document.createElement('div');
+      aviso.id = 'aviso-completar-inline';
+      aviso.className = 'aviso-info';
+      aviso.style.display = 'none';
+      aviso.textContent = '⚠️ Al cambiar a "Completada" se descontarán materias primas y se sumará stock al producto.';
+      $('f-est').parentElement.insertAdjacentElement('afterend', aviso);
+    }
+
+    $('f-est').addEventListener('change', function handler() {
+      aviso.style.display = this.value === 'completada' ? 'block' : 'none';
+    });
+  }
+
+  $('modal').classList.add('visible');
+};
+
+
+window.cerrar = () => {
+  $('modal').classList.remove('visible');
+  $('form').reset();
+  editId = null;
+  const aviso = document.getElementById('aviso-completar-inline');
+  if (aviso) aviso.style.display = 'none';
+};
+
+
+window.guardar = async (e) => {
+  e.preventDefault();
+
+  const body = {
+    id_producto:  +$('f-prod').value,
+    cantidad:     +$('f-cant').value,
+    estado:       $('f-est').value,
+    notas:        $('f-notas').value,
+    fecha_inicio: $('f-fi').value  || null,
+    fecha_fin:    $('f-ff').value  || null,
+  };
+
+  if (!body.id_producto) { toast('Selecciona un producto', 'error'); return; }
+  if (!body.cantidad)    { toast('Ingresa una cantidad',    'error'); return; }
+
+  const url    = editId ? `/api/produccion/ordenes/${editId}` : '/api/produccion/ordenes';
+  const method = editId ? 'PUT' : 'POST';
+
+  const data = await apiFetch(url, { method, body: JSON.stringify(body) });
+  if (data?.error) { toast(data.error, 'error'); return; }
+
+  toast(data?.mensaje || 'Guardado', 'ok');
+  cerrar();
+  cargarOrdenes();
+};
+
+
+window.verDetalle = async (id) => {
+  const data = await apiFetch(`/api/produccion/ordenes/${id}`);
+  if (!data || data.error) { toast('Error al cargar detalle', 'error'); return; }
+
+  const est  = ESTADOS[data.estado] || { label: data.estado, cls: '' };
+  const mats = (data.materiales || []).map(m =>
+    `<li>${m.nombre}: ${m.cantidad_requerida} ${m.abrev} × ${fmt(m.costo_prom)} = ${fmt(m.subtotal)}</li>`
+  ).join('') || '<li>Sin materiales registrados</li>';
+
+  
+  $('m-titulo').textContent = `Detalle orden #${data.id_orden}`;
+  $('form').innerHTML = `
+    <div class="detalle-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Producto</label>
+        <p style="margin:4px 0;font-weight:600">${data.producto}</p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Estado</label>
+        <p style="margin:4px 0"><span class="badge ${est.cls}">${est.label}</span></p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Cantidad</label>
+        <p style="margin:4px 0">${data.cantidad}</p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo unitario</label>
+        <p style="margin:4px 0">${fmt(data.costo_unit)}</p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo materiales</label>
+        <p style="margin:4px 0">${fmt(data.costo_mat)}</p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo total</label>
+        <p style="margin:4px 0"><strong>${fmt(data.costo_total)}</strong></p></div>
+      <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Registrado por</label>
+        <p style="margin:4px 0">${data.usuario}</p></div>
+    </div>
+    ${data.notas ? `<p><strong>Notas:</strong> ${data.notas}</p>` : ''}
+    <div>
+      <strong style="color:var(--naranja)">Materiales</strong>
+      <ul style="margin-top:8px;padding-left:20px">${mats}</ul>
+    </div>
+    <div class="modal-foot" style="margin-top:16px">
+      <button type="button" class="btn-cancel" onclick="cerrar()">Cerrar</button>
+    </div>
+  `;
+  $('modal').classList.add('visible');
+};
+
+
+window.eliminar = async (id) => {
+  if (!confirm('¿Eliminar esta orden? Solo se pueden eliminar órdenes pendientes.')) return;
+  const data = await apiFetch(`/api/produccion/ordenes/${id}`, { method: 'DELETE' });
+  if (data?.error) { toast(data.error, 'error'); return; }
+  toast('Orden eliminada', 'ok');
+  cargarOrdenes();
+};
+
+
+const toast = (msg, tipo = 'ok') => {
+  const el = $('toast');
+  el.textContent  = msg;
+  el.className    = `toast-visible toast-${tipo}`;
+  setTimeout(() => { el.className = ''; }, 3000);
+};
+
+
+let timer;
+$('buscar').addEventListener('input', (e) => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    pag.buscar = e.target.value;
+    pag.pagina = 1;
+    cargarOrdenes();
+  }, 350);
+});
+
+$('f-estado').addEventListener('change', (e) => {
+  pag.estado = e.target.value;
+  pag.pagina = 1;
+  cargarOrdenes();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') cerrar();
+});
+
 
 cargarCatalogos();
-cargar();
+cargarOrdenes();

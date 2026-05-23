@@ -23,19 +23,22 @@ const listar = async (req, res) => {
       params
     );
 
-    const [rows] = await db.query(
-      `SELECT
-         p.id_proveedor, p.nombre, p.nit, p.telefono,
-         p.correo, p.ciudad, p.direccion, p.fecha_reg,
-         COUNT(pp.id_prov_prod) AS total_productos
-       FROM proveedores p
-       LEFT JOIN proveedor_producto pp ON pp.id_proveedor = p.id_proveedor
-       ${where}
-       GROUP BY p.id_proveedor
-       ORDER BY p.nombre ASC
-       LIMIT ? OFFSET ?`,
-      [...params, Math.min(+limite, 200), offset]
-    );
+    
+const [rows] = await db.query(
+  `SELECT
+     p.id_proveedor, p.nombre, p.nit, p.telefono,
+     p.correo, p.ciudad, p.direccion, p.fecha_reg,
+     (
+       SELECT COUNT(*) FROM proveedor_producto pp WHERE pp.id_proveedor = p.id_proveedor
+     ) +
+     (
+       SELECT COUNT(*) FROM materias_primas mp WHERE mp.id_proveedor = p.id_proveedor AND mp.estado = 1
+     ) AS total_productos
+   ${sqlBase}
+   ORDER BY p.nombre ASC
+   LIMIT ? OFFSET ?`,
+  [...params, Math.min(+limite, 200), offset]
+);
 
     ok(res, {
       datos: rows,
@@ -112,17 +115,20 @@ const actualizar = async (req, res) => {
 
     const { nombre, nit, telefono, correo, direccion, ciudad } = req.body;
 
+    if (!nombre) return err(res, 'El nombre es obligatorio', 400);
+
+    // Usar valores directos en vez de COALESCE para que sí actualice
     await db.query(
       `UPDATE proveedores SET
-         nombre    = COALESCE(?, nombre),
-         nit       = COALESCE(?, nit),
-         telefono  = COALESCE(?, telefono),
-         correo    = COALESCE(?, correo),
-         direccion = COALESCE(?, direccion),
-         ciudad    = COALESCE(?, ciudad)
+         nombre    = ?,
+         nit       = ?,
+         telefono  = ?,
+         correo    = ?,
+         direccion = ?,
+         ciudad    = ?
        WHERE id_proveedor = ?`,
       [
-        nombre    ? sanitize(nombre)    : null,
+        sanitize(nombre),
         nit       ? sanitize(nit)       : null,
         telefono  ? sanitize(telefono)  : null,
         correo    ? sanitize(correo)    : null,

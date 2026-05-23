@@ -1,3 +1,17 @@
+const body = document.body;
+const mode = document.getElementById("btn_modo");
+
+if (localStorage.getItem("mode") === "dark") {
+  body.classList.add("dark-mode");
+  if (mode) mode.checked = true;
+}
+
+mode?.addEventListener("change", () => {
+  const isDark = body.classList.toggle("dark-mode");
+  localStorage.setItem("mode", isDark ? "dark" : "light");
+});
+
+
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 
 const apiFetch = async (url) => {
@@ -12,7 +26,6 @@ const apiFetch = async (url) => {
 const fmt = (n) =>
   Number(n || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
-// ── Mapa de tipos ──────────────────────────────────────────────────────────
 const TIPOS = {
   compra:          { label: 'Compra',             dir: 'entrada', cls: 'badge-azul'     },
   produccion:      { label: 'Producción',         dir: 'entrada', cls: 'badge-azul'     },
@@ -32,14 +45,13 @@ let estado = {
   hasta:  '',
 };
 
-// ── Fechas por defecto: mes actual ─────────────────────────────────────────
 const hoy = new Date();
 $('#fil-desde').value = new Date(hoy.getFullYear(), hoy.getMonth(), 1).toISOString().split('T')[0];
 $('#fil-hasta').value = hoy.toISOString().split('T')[0];
 estado.desde = $('#fil-desde').value;
 estado.hasta = $('#fil-hasta').value;
 
-// ── Cargar movimientos ─────────────────────────────────────────────────────
+
 const cargarMovimientos = async () => {
   const tbody = $('#tabla-body');
   tbody.innerHTML = `<tr><td colspan="8" class="cargando">Cargando...</td></tr>`;
@@ -65,7 +77,7 @@ const cargarMovimientos = async () => {
   $('#total-count').textContent = `${data.paginacion.total} movimiento${data.paginacion.total !== 1 ? 's' : ''}`;
 };
 
-// ── Cards ──────────────────────────────────────────────────────────────────
+
 const renderCards = (r) => {
   $('#ci-total').textContent    = r.total     || 0;
   $('#ci-entradas').textContent = r.entradas  || 0;
@@ -73,7 +85,7 @@ const renderCards = (r) => {
   $('#ci-valor').textContent    = fmt(r.valor_total);
 };
 
-// ── Tabla ──────────────────────────────────────────────────────────────────
+
 const renderTabla = (datos) => {
   const tbody = $('#tabla-body');
 
@@ -118,7 +130,7 @@ const renderTabla = (datos) => {
   }).join('');
 };
 
-// ── Paginación ─────────────────────────────────────────────────────────────
+
 const renderPaginacion = ({ pagina, paginas, total }) => {
   const el = $('#paginacion');
   el.innerHTML = '';
@@ -141,7 +153,7 @@ const renderPaginacion = ({ pagina, paginas, total }) => {
 
 window.cambiarPagina = (p) => { estado.pagina = p; cargarMovimientos(); };
 
-// ── Filtros ────────────────────────────────────────────────────────────────
+
 const aplicarFiltros = () => {
   estado.pagina = 1;
   estado.tipo   = $('#fil-tipo').value;
@@ -172,5 +184,5 @@ $('#buscar-input').addEventListener('input', (e) => {
   }, 350);
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
+
 cargarMovimientos();
