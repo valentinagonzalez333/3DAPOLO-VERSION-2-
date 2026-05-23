@@ -598,3 +598,31 @@ body.dark-mode .stock-info { background: rgba(255,107,0,0.08); }
     font-size: 13px;
   }
 }
+
+/* Override estilos globales de panel.css */
+.tabla-productos th {
+  color: #b05a2c !important;
+  font-size: 12px !important;
+  padding: 6px 14px !important;
+  border-spacing: 0 !important;
+}
+
+.tabla-productos td {
+  background: rgba(255,255,255,0.75) !important;
+  padding: 10px 14px !important;
+  border-radius: 0 !important;
+  color: #4a3a2c !important;
+  transform: none !important;
+}
+
+.tabla-productos td:first-child { border-radius: 12px 0 0 12px !important; }
+.tabla-productos td:last-child  { border-radius: 0 12px 12px 0 !important; }
+
+.tabla-productos tr:hover td {
+  background: rgba(255,220,180,0.55) !important;
+  transform: none !important;
+}
+
+.tabla-wrap table {
+  border-spacing: 4px 6px !important;
+}
