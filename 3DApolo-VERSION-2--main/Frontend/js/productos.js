@@ -48,7 +48,13 @@ const apiFetch = async (url, opts = {}) => {
   return res.json();
 };
 
-/* ── CATÁLOGOS ── */
+const setPrecioMode = (esFabricado) => {
+  const input = $('#form-precio-venta');
+  const hint  = $('#label-precio-hint');
+  input.readOnly   = esFabricado;
+  hint.textContent = esFabricado ? '— calculado desde materiales' : '';
+};
+
 const cargarCatalogos = async () => {
   const data = await apiFetch(`${API}/catalogos`);
   if (!data) return;
@@ -61,14 +67,12 @@ const cargarCatalogos = async () => {
     selCatForm.insertAdjacentHTML('beforeend', opt);
   });
   data.unidades.forEach(({ id_unidad, nombre, abrev }) => {
-    selUnidad.insertAdjacentHTML(
-      'beforeend',
+    selUnidad.insertAdjacentHTML('beforeend',
       `<option value="${id_unidad}">${nombre} (${abrev})</option>`
     );
   });
 };
 
-/* ── TABLA ── */
 const cargarProductos = async () => {
   const tbody = $('#tabla-body');
   tbody.innerHTML = `<tr><td colspan="8" class="cargando">Cargando...</td></tr>`;
@@ -129,7 +133,6 @@ const renderPaginacion = ({ pagina, paginas, total }) => {
 
 window.cambiarPagina = (p) => { estado.pagina = p; cargarProductos(); };
 
-/* ── MODAL ABRIR/CERRAR ── */
 const abrirModal = (titulo = 'Nuevo producto') => {
   $('#modal-titulo').textContent = titulo;
   $('#modal-producto').classList.add('visible');
@@ -139,21 +142,22 @@ const cerrarModal = () => {
   $('#modal-producto').classList.remove('visible');
   $('#form-producto').reset();
   estado.editandoId = null;
-  $('#panel-materiales').style.display    = 'none';
-  $('#campo-margen').style.display        = 'none';
-  $('#campo-costo-fab').style.display     = 'none';
-  $('#lista-materiales').innerHTML        = '';
-  $('#form-precio-venta').value           = '';
-  $('#form-costo-fab').value              = '';
+  $('#panel-materiales').style.display = 'none';
+  $('#campo-margen').style.display     = 'none';
+  $('#campo-costo-fab').style.display  = 'none';
+  $('#lista-materiales').innerHTML     = '';
+  $('#form-precio-venta').value        = '';
+  $('#form-costo-fab').value           = '';
+  setPrecioMode(false);
 };
 window.cerrarModal = cerrarModal;
 
-/* ── CAMBIO DE TIPO ── */
 $('#form-tipo').addEventListener('change', function () {
   const esFabricado = this.value === 'fabricado';
-  $('#panel-materiales').style.display  = esFabricado ? 'block' : 'none';
-  $('#campo-margen').style.display      = esFabricado ? 'block' : 'none';
-  $('#campo-costo-fab').style.display   = esFabricado ? 'block' : 'none';
+  $('#panel-materiales').style.display = esFabricado ? 'block' : 'none';
+  $('#campo-margen').style.display     = esFabricado ? 'block' : 'none';
+  $('#campo-costo-fab').style.display  = esFabricado ? 'block' : 'none';
+  setPrecioMode(esFabricado);
   if (!esFabricado) {
     $('#lista-materiales').innerHTML = '';
     $('#form-precio-venta').value    = '';
@@ -161,11 +165,9 @@ $('#form-tipo').addEventListener('change', function () {
   }
 });
 
-/* ── RECALCULAR PRECIO FABRICADO ── */
 const recalcularPrecioFabricado = () => {
   const filas = [...document.querySelectorAll('.fila-material')];
   let costoTotal = 0;
-
   filas.forEach(fila => {
     const sel   = fila.querySelector('.mat-select');
     const cant  = +fila.querySelector('.mat-cant').value || 0;
@@ -173,16 +175,13 @@ const recalcularPrecioFabricado = () => {
     const costo = opt?.value ? +opt.dataset.costo : 0;
     costoTotal += cant * costo;
   });
-
   const margen = +($('#form-margen').value) || 0;
   const precio = costoTotal > 0 ? costoTotal * (1 + margen / 100) : 0;
-
   $('#form-costo-fab').value    = costoTotal.toFixed(2);
   $('#form-precio-venta').value = precio.toFixed(2);
 };
 window.recalcularPrecioFabricado = recalcularPrecioFabricado;
 
-/* ── SUBMIT ── */
 $('#form-producto').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = $('#btn-guardar');
@@ -192,8 +191,7 @@ $('#form-producto').addEventListener('submit', async (e) => {
   const tipo = $('#form-tipo').value;
 
   if (tipo === 'fabricado') {
-    const stockOk = validarStockMateriales();
-    if (!stockOk) {
+    if (!validarStockMateriales()) {
       btn.disabled = false;
       btn.textContent = 'Guardar';
       return;
@@ -234,13 +232,14 @@ $('#form-producto').addEventListener('submit', async (e) => {
   cargarProductos();
 });
 
-/* ── EDITAR ── */
 window.abrirEditar = async (id) => {
   estado.editandoId = id;
   const data = await apiFetch(`${API}/${id}`);
   if (!data || data.error) return mostrarToast('Error al cargar producto', 'error');
 
   abrirModal('Editar producto');
+
+  const esFabricado = data.tipo === 'fabricado';
 
   $('#form-nombre').value       = data.nombre;
   $('#form-descripcion').value  = data.descripcion || '';
@@ -251,29 +250,26 @@ window.abrirEditar = async (id) => {
   $('#form-stock-min').value    = data.stock_min;
   $('#form-min-mayoreo').value  = data.min_mayoreo || '';
   $('#form-desc-mayoreo').value = data.desc_mayoreo;
+  $('#form-precio-venta').value = data.precio_venta || '';
 
-  if (data.tipo === 'fabricado') {
+  setPrecioMode(esFabricado);
+
+  if (esFabricado) {
     $('#panel-materiales').style.display = 'block';
     $('#campo-margen').style.display     = 'block';
     $('#campo-costo-fab').style.display  = 'block';
+    $('#form-costo-fab').value           = data.costo_prom || '';
     $('#lista-materiales').innerHTML     = '';
-
     const d = await apiFetch(`${API}/${id}/materiales`);
     (d?.materiales || []).forEach(m => agregarFilaMaterial(m.id_materia, m.cantidad));
-
-    // Mostrar precio y costo actuales
-    $('#form-precio-venta').value = data.precio_venta || '';
-    $('#form-costo-fab').value    = data.costo_prom   || '';
   } else {
     $('#panel-materiales').style.display = 'none';
     $('#campo-margen').style.display     = 'none';
     $('#campo-costo-fab').style.display  = 'none';
-    $('#form-precio-venta').value        = data.precio_venta || '';
     $('#lista-materiales').innerHTML     = '';
   }
 };
 
-/* ── VER DETALLE ── */
 window.verProducto = async (id) => {
   const data = await apiFetch(`${API}/${id}`);
   if (!data) return;
@@ -290,7 +286,8 @@ window.verProducto = async (id) => {
       <div class="detalle-item"><label>Categoría</label><span>${data.categoria || '—'}</span></div>
       <div class="detalle-item"><label>Unidad</label><span>${data.unidad} (${data.abrev})</span></div>
       <div class="detalle-item"><label>Precio venta</label><span>${data.precio_venta > 0 ? fmt(data.precio_venta) : '—'}</span></div>
-      <div class="detalle-item"><label>Costo promedio</label><span>${data.costo_prom > 0 ? fmt(data.costo_prom) : '—'}</span></div>
+      <div class="detalle-item"><label>${data.tipo === 'fabricado' ? 'Costo fabricación' : 'Costo promedio'}</label><span>${data.costo_prom > 0 ? fmt(data.costo_prom) : '—'}</span></div>
+      <div class="detalle-item"><label>Margen</label><span>${data.precio_venta && data.costo_prom ? (((data.precio_venta - data.costo_prom) / data.precio_venta) * 100).toFixed(1) + '%' : '—'}</span></div>
       <div class="detalle-item"><label>IVA</label><span>${data.iva}%</span></div>
       <div class="detalle-item"><label>Stock actual</label><span>${data.stock} ${data.abrev}</span></div>
       <div class="detalle-item"><label>Stock mínimo</label><span>${data.stock_min}</span></div>
@@ -308,7 +305,6 @@ window.verProducto = async (id) => {
 
 window.cerrarDetalle = () => $('#modal-detalle').classList.remove('visible');
 
-/* ── ELIMINAR ── */
 window.eliminarProducto = async (id, nombre) => {
   if (!confirm(`¿Eliminar "${nombre}"? Esta acción no se puede deshacer.`)) return;
   const data = await apiFetch(`${API}/${id}`, { method: 'DELETE' });
@@ -317,7 +313,6 @@ window.eliminarProducto = async (id, nombre) => {
   cargarProductos();
 };
 
-/* ── TOAST ── */
 const mostrarToast = (msg, tipo = 'ok') => {
   const t = document.createElement('div');
   t.className = `toast toast-${tipo}`;
@@ -327,7 +322,6 @@ const mostrarToast = (msg, tipo = 'ok') => {
   setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 3000);
 };
 
-/* ── FILTROS ── */
 let timer;
 $('#buscar-input').addEventListener('input', (e) => {
   clearTimeout(timer);
@@ -344,9 +338,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') { cerrarModal(); cerrarDetalle(); }
 });
 
-/* ══════════════════════════════════════════
-   MATERIAS PRIMAS
-══════════════════════════════════════════ */
 let materiasDisponibles = [];
 
 const cargarMateriasDisponibles = async () => {
@@ -451,7 +442,6 @@ const guardarMateriales = async (idProd) => {
   return true;
 };
 
-/* ── INIT ── */
 (async () => {
   await cargarCatalogos();
   await cargarMateriasDisponibles();
