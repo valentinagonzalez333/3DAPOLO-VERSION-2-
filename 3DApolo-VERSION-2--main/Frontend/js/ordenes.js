@@ -1,19 +1,5 @@
 const $ = id => document.getElementById(id);
 
-const apiFetch = async (url, opts = {}) => {
-  const token = localStorage.getItem('token') || '';
-  const res = await fetch(url, {
-    ...opts,
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-      ...(opts.headers || {}),
-    },
-  });
-  if (res.status === 401) { window.location.href = '/login'; return null; }
-  return res.json();
-};
-
 const fmt = (n) =>
   Number(n || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
@@ -24,10 +10,10 @@ const ESTADOS = {
   cancelada:  { label: 'Cancelada',  cls: 'badge-rojo'     },
 };
 
-let pag     = { pagina: 1, limite: 20, buscar: '', estado: '' };
-let editId  = null;
+let pag    = { pagina: 1, limite: 20, buscar: '', estado: '' };
+let editId = null;
 
-
+// ── Catálogos ──────────────────────────────────────────────────────────────
 const cargarCatalogos = async () => {
   const data = await apiFetch('/api/produccion/catalogos');
   if (!data) return;
@@ -39,7 +25,7 @@ const cargarCatalogos = async () => {
   });
 };
 
-
+// ── Tabla ──────────────────────────────────────────────────────────────────
 const cargarOrdenes = async () => {
   const tbody = $('tbody');
   tbody.innerHTML = `<tr><td colspan="8" class="tbl-empty">Cargando...</td></tr>`;
@@ -54,12 +40,10 @@ const cargarOrdenes = async () => {
   const data = await apiFetch(`/api/produccion/ordenes?${params}`);
   if (!data) return;
 
-  
-  const tots = data.datos;
   $('ci-total').textContent   = data.paginacion.total;
-  $('ci-proceso').textContent = tots.filter(o => o.estado === 'en_proceso').length;
-  $('ci-comp').textContent    = tots.filter(o => o.estado === 'completada').length;
-  $('ci-pend').textContent    = tots.filter(o => o.estado === 'pendiente').length;
+  $('ci-proceso').textContent = data.datos.filter(o => o.estado === 'en_proceso').length;
+  $('ci-comp').textContent    = data.datos.filter(o => o.estado === 'completada').length;
+  $('ci-pend').textContent    = data.datos.filter(o => o.estado === 'pendiente').length;
 
   tbody.innerHTML = '';
 
@@ -70,12 +54,11 @@ const cargarOrdenes = async () => {
   }
 
   data.datos.forEach(o => {
-    const est     = ESTADOS[o.estado] || { label: o.estado, cls: '' };
+    const est      = ESTADOS[o.estado] || { label: o.estado, cls: '' };
     const fechaIni = o.fecha_inicio ? new Date(o.fecha_inicio).toLocaleDateString('es-CO') : '—';
     const fechaFin = o.fecha_fin    ? new Date(o.fecha_fin).toLocaleDateString('es-CO')    : '—';
-
-    const puedeEditar    = o.estado !== 'completada' && o.estado !== 'cancelada';
-    const puedeEliminar  = o.estado === 'pendiente';
+    const puedeEditar   = o.estado !== 'completada' && o.estado !== 'cancelada';
+    const puedeEliminar = o.estado === 'pendiente';
 
     tbody.insertAdjacentHTML('beforeend', `
       <tr>
@@ -87,16 +70,9 @@ const cargarOrdenes = async () => {
         <td>${fechaIni}</td>
         <td>${fechaFin}</td>
         <td>
-          ${puedeEditar ? `
-            <button class="btn-icon" title="Editar"
-              onclick='abrirEditar(${JSON.stringify(o)})'>✏️</button>
-          ` : ''}
-          <button class="btn-icon" title="Ver detalle"
-            onclick="verDetalle(${o.id_orden})">👁</button>
-          ${puedeEliminar ? `
-            <button class="btn-icon btn-del" title="Eliminar"
-              onclick="eliminar(${o.id_orden})">🗑</button>
-          ` : ''}
+          ${puedeEditar   ? `<button class="btn-icon" title="Editar" onclick='abrirEditar(${JSON.stringify(o)})'>✏️</button>` : ''}
+          <button class="btn-icon" title="Ver detalle" onclick="verDetalle(${o.id_orden})">👁</button>
+          ${puedeEliminar ? `<button class="btn-icon btn-del" title="Eliminar" onclick="eliminar(${o.id_orden})">🗑</button>` : ''}
         </td>
       </tr>
     `);
@@ -105,7 +81,7 @@ const cargarOrdenes = async () => {
   renderPag(data.paginacion);
 };
 
-
+// ── Paginación ─────────────────────────────────────────────────────────────
 const renderPag = ({ pagina, paginas }) => {
   const el = $('pag');
   el.innerHTML = '';
@@ -124,21 +100,25 @@ const renderPag = ({ pagina, paginas }) => {
 
 window.cambiarPag = (p) => { pag.pagina = p; cargarOrdenes(); };
 
-
+// ── Modal nueva orden ──────────────────────────────────────────────────────
 window.abrirModal = () => {
   editId = null;
   $('m-titulo').textContent = 'Nueva orden de producción';
   $('form').reset();
   $('f-est').value = 'pendiente';
+
+  // Limpiar aviso si quedó de antes
+  const aviso = document.getElementById('aviso-completar-inline');
+  if (aviso) aviso.style.display = 'none';
+
   $('modal').classList.add('visible');
 };
 
-
+// ── Modal editar ───────────────────────────────────────────────────────────
 window.abrirEditar = (o) => {
   editId = o.id_orden;
   $('m-titulo').textContent = `Editar orden #${o.id_orden}`;
 
-  
   $('f-prod').value  = o.id_producto;
   $('f-cant').value  = o.cantidad;
   $('f-est').value   = o.estado;
@@ -146,37 +126,36 @@ window.abrirEditar = (o) => {
   $('f-ff').value    = o.fecha_fin    ? o.fecha_fin.split('T')[0]    : '';
   $('f-notas').value = o.notas || '';
 
-  
-  if (o.estado !== 'completada') {
-   
-    let aviso = document.getElementById('aviso-completar-inline');
-    if (!aviso) {
-      aviso = document.createElement('div');
-      aviso.id = 'aviso-completar-inline';
-      aviso.className = 'aviso-info';
-      aviso.style.display = 'none';
-      aviso.textContent = '⚠️ Al cambiar a "Completada" se descontarán materias primas y se sumará stock al producto.';
-      $('f-est').parentElement.insertAdjacentElement('afterend', aviso);
-    }
-
-    $('f-est').addEventListener('change', function handler() {
-      aviso.style.display = this.value === 'completada' ? 'block' : 'none';
-    });
+  // Aviso al completar
+  let aviso = document.getElementById('aviso-completar-inline');
+  if (!aviso) {
+    aviso = document.createElement('div');
+    aviso.id        = 'aviso-completar-inline';
+    aviso.className = 'aviso-info';
+    aviso.textContent = '⚠️ Al cambiar a "Completada" se descontarán materias primas y se sumará stock al producto.';
+    $('f-est').parentElement.insertAdjacentElement('afterend', aviso);
   }
+  aviso.style.display = o.estado === 'completada' ? 'block' : 'none';
+
+  // Listener para mostrar/ocultar aviso al cambiar estado
+  $('f-est').onchange = function () {
+    aviso.style.display = this.value === 'completada' ? 'block' : 'none';
+  };
 
   $('modal').classList.add('visible');
 };
 
-
+// ── Cerrar modal ───────────────────────────────────────────────────────────
 window.cerrar = () => {
   $('modal').classList.remove('visible');
   $('form').reset();
   editId = null;
+  $('f-est').onchange = null;
   const aviso = document.getElementById('aviso-completar-inline');
   if (aviso) aviso.style.display = 'none';
 };
 
-
+// ── Guardar ────────────────────────────────────────────────────────────────
 window.guardar = async (e) => {
   e.preventDefault();
 
@@ -203,7 +182,7 @@ window.guardar = async (e) => {
   cargarOrdenes();
 };
 
-
+// ── Ver detalle ────────────────────────────────────────────────────────────
 window.verDetalle = async (id) => {
   const data = await apiFetch(`/api/produccion/ordenes/${id}`);
   if (!data || data.error) { toast('Error al cargar detalle', 'error'); return; }
@@ -213,24 +192,23 @@ window.verDetalle = async (id) => {
     `<li>${m.nombre}: ${m.cantidad_requerida} ${m.abrev} × ${fmt(m.costo_prom)} = ${fmt(m.subtotal)}</li>`
   ).join('') || '<li>Sin materiales registrados</li>';
 
-  
   $('m-titulo').textContent = `Detalle orden #${data.id_orden}`;
   $('form').innerHTML = `
-    <div class="detalle-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Producto</label>
-        <p style="margin:4px 0;font-weight:600">${data.producto}</p></div>
+           <p style="margin:4px 0;font-weight:600">${data.producto}</p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Estado</label>
-        <p style="margin:4px 0"><span class="badge ${est.cls}">${est.label}</span></p></div>
+           <p style="margin:4px 0"><span class="badge ${est.cls}">${est.label}</span></p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Cantidad</label>
-        <p style="margin:4px 0">${data.cantidad}</p></div>
+           <p style="margin:4px 0">${data.cantidad}</p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo unitario</label>
-        <p style="margin:4px 0">${fmt(data.costo_unit)}</p></div>
+           <p style="margin:4px 0">${fmt(data.costo_unit)}</p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo materiales</label>
-        <p style="margin:4px 0">${fmt(data.costo_mat)}</p></div>
+           <p style="margin:4px 0">${fmt(data.costo_mat)}</p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Costo total</label>
-        <p style="margin:4px 0"><strong>${fmt(data.costo_total)}</strong></p></div>
+           <p style="margin:4px 0"><strong>${fmt(data.costo_total)}</strong></p></div>
       <div><label style="font-size:11px;color:#aaa;text-transform:uppercase">Registrado por</label>
-        <p style="margin:4px 0">${data.usuario}</p></div>
+           <p style="margin:4px 0">${data.usuario}</p></div>
     </div>
     ${data.notas ? `<p><strong>Notas:</strong> ${data.notas}</p>` : ''}
     <div>
@@ -244,24 +222,24 @@ window.verDetalle = async (id) => {
   $('modal').classList.add('visible');
 };
 
-
+// ── Eliminar ───────────────────────────────────────────────────────────────
 window.eliminar = async (id) => {
-  if (!confirm('¿Eliminar esta orden? Solo se pueden eliminar órdenes pendientes.')) return;
+  if (!confirm('¿Eliminar esta orden?')) return;
   const data = await apiFetch(`/api/produccion/ordenes/${id}`, { method: 'DELETE' });
   if (data?.error) { toast(data.error, 'error'); return; }
   toast('Orden eliminada', 'ok');
   cargarOrdenes();
 };
 
-
+// ── Toast ──────────────────────────────────────────────────────────────────
 const toast = (msg, tipo = 'ok') => {
   const el = $('toast');
-  el.textContent  = msg;
-  el.className    = `toast-visible toast-${tipo}`;
+  el.textContent = msg;
+  el.className   = `toast-visible toast-${tipo}`;
   setTimeout(() => { el.className = ''; }, 3000);
 };
 
-
+// ── Filtros ────────────────────────────────────────────────────────────────
 let timer;
 $('buscar').addEventListener('input', (e) => {
   clearTimeout(timer);
@@ -282,6 +260,6 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrar();
 });
 
-
+// ── Init ───────────────────────────────────────────────────────────────────
 cargarCatalogos();
 cargarOrdenes();
