@@ -1,7 +1,7 @@
 const db = require('../confg/db_conexion');
 
-const ok       = (res, data, status = 200) => res.status(status).json(data);
-const err      = (res, msg, status = 500)  => res.status(status).json({ error: msg });
+const ok = (res, data, status = 200) => res.status(status).json(data);
+const err = (res, msg, status = 500) => res.status(status).json({ error: msg });
 const sanitize = (v) => (typeof v === 'string' ? v.trim().replace(/[<>"']/g, '') : v);
 
 
@@ -25,15 +25,17 @@ const listar = async (req, res) => {
 
     const [rows] = await db.query(
       `SELECT
-         p.id_proveedor, p.nombre, p.nit, p.telefono,
-         p.correo, p.ciudad, p.direccion, p.fecha_reg,
-         COUNT(pp.id_prov_prod) AS total_productos
-       FROM proveedores p
-       LEFT JOIN proveedor_producto pp ON pp.id_proveedor = p.id_proveedor
-       ${where}
-       GROUP BY p.id_proveedor
-       ORDER BY p.nombre ASC
-       LIMIT ? OFFSET ?`,
+     p.id_proveedor, p.nombre, p.nit, p.telefono,
+     p.correo, p.ciudad, p.direccion, p.fecha_reg,
+     COUNT(DISTINCT pp.id_prov_prod) +
+     COUNT(DISTINCT mp.id_materia)   AS total_productos
+   FROM proveedores p
+   LEFT JOIN proveedor_producto pp ON pp.id_proveedor = p.id_proveedor
+   LEFT JOIN materias_primas    mp ON mp.id_proveedor = p.id_proveedor AND mp.estado = 1
+   ${where}
+   GROUP BY p.id_proveedor
+   ORDER BY p.nombre ASC
+   LIMIT ? OFFSET ?`,
       [...params, Math.min(+limite, 200), offset]
     );
 
@@ -41,8 +43,8 @@ const listar = async (req, res) => {
       datos: rows,
       paginacion: {
         total,
-        pagina:  +pagina,
-        limite:  +limite,
+        pagina: +pagina,
+        limite: +limite,
         paginas: Math.ceil(total / +limite),
       },
     });
@@ -72,11 +74,11 @@ const crear = async (req, res) => {
   try {
     const {
       nombre,
-      nit       = null,
-      telefono  = null,
-      correo    = null,
+      nit = null,
+      telefono = null,
+      correo = null,
       direccion = null,
-      ciudad    = null,
+      ciudad = null,
     } = req.body;
 
     if (!nombre) return err(res, 'El nombre es obligatorio', 400);
@@ -86,11 +88,11 @@ const crear = async (req, res) => {
        VALUES (?, ?, ?, ?, ?, ?)`,
       [
         sanitize(nombre),
-        nit      ? sanitize(nit)      : null,
+        nit ? sanitize(nit) : null,
         telefono ? sanitize(telefono) : null,
-        correo   ? sanitize(correo)   : null,
+        correo ? sanitize(correo) : null,
         direccion ? sanitize(direccion) : null,
-        ciudad   ? sanitize(ciudad)   : null,
+        ciudad ? sanitize(ciudad) : null,
       ]
     );
 
@@ -126,11 +128,11 @@ const actualizar = async (req, res) => {
        WHERE id_proveedor = ?`,
       [
         sanitize(nombre),
-        nit       ? sanitize(nit)       : null,
-        telefono  ? sanitize(telefono)  : null,
-        correo    ? sanitize(correo)    : null,
+        nit ? sanitize(nit) : null,
+        telefono ? sanitize(telefono) : null,
+        correo ? sanitize(correo) : null,
         direccion ? sanitize(direccion) : null,
-        ciudad    ? sanitize(ciudad)    : null,
+        ciudad ? sanitize(ciudad) : null,
         id,
       ]
     );
