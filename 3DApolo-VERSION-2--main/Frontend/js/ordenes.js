@@ -4,16 +4,15 @@ const fmt = (n) =>
   Number(n || 0).toLocaleString('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 });
 
 const ESTADOS = {
-  pendiente:  { label: 'Pendiente',  cls: 'badge-amarillo' },
-  en_proceso: { label: 'En proceso', cls: 'badge-azul'     },
-  completada: { label: 'Completada', cls: 'badge-verde'    },
-  cancelada:  { label: 'Cancelada',  cls: 'badge-rojo'     },
+  pendiente:  { label: 'Pendiente',  cls: 'badge-naranja' },
+  en_proceso: { label: 'En proceso', cls: 'badge-azul'    },
+  completada: { label: 'Completada', cls: 'badge-verde'   },
+  cancelada:  { label: 'Cancelada',  cls: 'badge-rojo'    },
 };
 
 let pag    = { pagina: 1, limite: 20, buscar: '', estado: '' };
 let editId = null;
 
-// ── Catálogos ──────────────────────────────────────────────────────────────
 const cargarCatalogos = async () => {
   const data = await apiFetch('/api/produccion/catalogos');
   if (!data) return;
@@ -25,7 +24,6 @@ const cargarCatalogos = async () => {
   });
 };
 
-// ── Tabla ──────────────────────────────────────────────────────────────────
 const cargarOrdenes = async () => {
   const tbody = $('tbody');
   tbody.innerHTML = `<tr><td colspan="8" class="tbl-empty">Cargando...</td></tr>`;
@@ -70,9 +68,9 @@ const cargarOrdenes = async () => {
         <td>${fechaIni}</td>
         <td>${fechaFin}</td>
         <td>
-          ${puedeEditar   ? `<button class="btn-icon" title="Editar" onclick='abrirEditar(${JSON.stringify(o)})'>✏️</button>` : ''}
-          <button class="btn-icon" title="Ver detalle" onclick="verDetalle(${o.id_orden})">👁</button>
-          ${puedeEliminar ? `<button class="btn-icon btn-del" title="Eliminar" onclick="eliminar(${o.id_orden})">🗑</button>` : ''}
+          ${puedeEditar   ? `<button class="btn-acc" title="Editar" onclick='abrirEditar(${JSON.stringify(o)})'>✏️</button>` : ''}
+          <button class="btn-acc" title="Ver detalle" onclick="verDetalle(${o.id_orden})">👁</button>
+          ${puedeEliminar ? `<button class="btn-acc rojo" title="Eliminar" onclick="eliminar(${o.id_orden})">🗑</button>` : ''}
         </td>
       </tr>
     `);
@@ -81,7 +79,6 @@ const cargarOrdenes = async () => {
   renderPag(data.paginacion);
 };
 
-// ── Paginación ─────────────────────────────────────────────────────────────
 const renderPag = ({ pagina, paginas }) => {
   const el = $('pag');
   el.innerHTML = '';
@@ -100,21 +97,16 @@ const renderPag = ({ pagina, paginas }) => {
 
 window.cambiarPag = (p) => { pag.pagina = p; cargarOrdenes(); };
 
-// ── Modal nueva orden ──────────────────────────────────────────────────────
 window.abrirModal = () => {
   editId = null;
   $('m-titulo').textContent = 'Nueva orden de producción';
   $('form').reset();
   $('f-est').value = 'pendiente';
-
-  // Limpiar aviso si quedó de antes
-  const aviso = document.getElementById('aviso-completar-inline');
+  const aviso = $('aviso-completar-inline');
   if (aviso) aviso.style.display = 'none';
-
-  $('modal').classList.remove('open');
+  $('modal').classList.add('open');
 };
 
-// ── Modal editar ───────────────────────────────────────────────────────────
 window.abrirEditar = (o) => {
   editId = o.id_orden;
   $('m-titulo').textContent = `Editar orden #${o.id_orden}`;
@@ -126,8 +118,7 @@ window.abrirEditar = (o) => {
   $('f-ff').value    = o.fecha_fin    ? o.fecha_fin.split('T')[0]    : '';
   $('f-notas').value = o.notas || '';
 
-  // Aviso al completar
-  let aviso = document.getElementById('aviso-completar-inline');
+  let aviso = $('aviso-completar-inline');
   if (!aviso) {
     aviso = document.createElement('div');
     aviso.id        = 'aviso-completar-inline';
@@ -135,27 +126,24 @@ window.abrirEditar = (o) => {
     aviso.textContent = '⚠️ Al cambiar a "Completada" se descontarán materias primas y se sumará stock al producto.';
     $('f-est').parentElement.insertAdjacentElement('afterend', aviso);
   }
-  aviso.style.display = o.estado === 'completada' ? 'block' : 'none';
+  aviso.style.display = this.value === 'completada' ? 'block' : 'none';
 
-  // Listener para mostrar/ocultar aviso al cambiar estado
   $('f-est').onchange = function () {
     aviso.style.display = this.value === 'completada' ? 'block' : 'none';
   };
 
-  $('modal').classList.remove('open');
+  $('modal').classList.add('open');
 };
 
-// ── Cerrar modal ───────────────────────────────────────────────────────────
 window.cerrar = () => {
- $('modal').classList.remove('open');
+  $('modal').classList.remove('open');
   $('form').reset();
   editId = null;
   $('f-est').onchange = null;
-  const aviso = document.getElementById('aviso-completar-inline');
+  const aviso = $('aviso-completar-inline');
   if (aviso) aviso.style.display = 'none';
 };
 
-// ── Guardar ────────────────────────────────────────────────────────────────
 window.guardar = async (e) => {
   e.preventDefault();
 
@@ -182,7 +170,6 @@ window.guardar = async (e) => {
   cargarOrdenes();
 };
 
-// ── Ver detalle ────────────────────────────────────────────────────────────
 window.verDetalle = async (id) => {
   const data = await apiFetch(`/api/produccion/ordenes/${id}`);
   if (!data || data.error) { toast('Error al cargar detalle', 'error'); return; }
@@ -219,10 +206,9 @@ window.verDetalle = async (id) => {
       <button type="button" class="btn-cancel" onclick="cerrar()">Cerrar</button>
     </div>
   `;
-  $('modal').classList.remove('open');
+  $('modal').classList.add('open');
 };
 
-// ── Eliminar ───────────────────────────────────────────────────────────────
 window.eliminar = async (id) => {
   if (!confirm('¿Eliminar esta orden?')) return;
   const data = await apiFetch(`/api/produccion/ordenes/${id}`, { method: 'DELETE' });
@@ -231,15 +217,13 @@ window.eliminar = async (id) => {
   cargarOrdenes();
 };
 
-// ── Toast ──────────────────────────────────────────────────────────────────
 const toast = (msg, tipo = 'ok') => {
   const el = $('toast');
   el.textContent = msg;
-  el.className   = `toast-visible toast-${tipo}`;
+  el.className   = `show ${tipo}`;
   setTimeout(() => { el.className = ''; }, 3000);
 };
 
-// ── Filtros ────────────────────────────────────────────────────────────────
 let timer;
 $('buscar').addEventListener('input', (e) => {
   clearTimeout(timer);
@@ -260,6 +244,5 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') cerrar();
 });
 
-// ── Init ───────────────────────────────────────────────────────────────────
 cargarCatalogos();
 cargarOrdenes();
