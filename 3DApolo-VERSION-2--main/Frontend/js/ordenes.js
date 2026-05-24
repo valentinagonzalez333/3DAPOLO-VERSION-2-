@@ -111,7 +111,7 @@ window.abrirModal = () => {
   const aviso = document.getElementById('aviso-completar-inline');
   if (aviso) aviso.style.display = 'none';
 
-  $('modal').classList.add('visible');
+  $('modal').classList.remove('open');
 };
 
 // ── Modal editar ───────────────────────────────────────────────────────────
@@ -142,12 +142,12 @@ window.abrirEditar = (o) => {
     aviso.style.display = this.value === 'completada' ? 'block' : 'none';
   };
 
-  $('modal').classList.add('visible');
+  $('modal').classList.remove('open');
 };
 
 // ── Cerrar modal ───────────────────────────────────────────────────────────
 window.cerrar = () => {
-  $('modal').classList.remove('visible');
+ $('modal').classList.remove('open');
   $('form').reset();
   editId = null;
   $('f-est').onchange = null;
@@ -219,7 +219,7 @@ window.verDetalle = async (id) => {
       <button type="button" class="btn-cancel" onclick="cerrar()">Cerrar</button>
     </div>
   `;
-  $('modal').classList.add('visible');
+  $('modal').classList.remove('open');
 };
 
 // ── Eliminar ───────────────────────────────────────────────────────────────
